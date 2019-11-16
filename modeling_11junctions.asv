@@ -142,7 +142,7 @@ for joint=1:10
         x0 = [getGlobalLeftElbowX, getGlobalLeftElbowY, getGlobalLeftElbowX-15, getGlobalLeftElbowY, 0];
         setGlobalCount(7);
     elseif joint==8 %¿À¸¥ÂÊÆÈ²ÞÄ¡-¿À¸¥ÂÊ¼Õ
-        x0 = [getGlobalRightElbowX, getGlobalRightElbowY, getGlobalRightElbowX+15, getGlobalRightElbowY, 0];
+        x0 = [getGlobalRightElbowX, getGlobalRightElbowY, getGlobalRightElbowX+15, getGlobalRightElbowY, 5];
         setGlobalCount(8);
     elseif joint==9 %¿ÞÂÊ¹«¸­-¿ÞÂÊ¹ß
         x0 = [getGlobalLeftKneeX, getGlobalLeftKneeY, getGlobalLeftKneeX-5, getGlobalLeftKneeY+15, 0];
