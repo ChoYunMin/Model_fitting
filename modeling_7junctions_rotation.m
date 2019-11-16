@@ -10,7 +10,7 @@ function o = otest
 clear all;
 dct_driven=1;
 
-skeletonim = imread('person_skeleton5.jpg'); 
+skeletonim = imread('person_data/person_skeleton7.jpg'); 
 %skeletonim = imread('md2.jpg');
 %skeletonimage=double(rgb2gray(skeletonim));
 skeletonimage=double(skeletonim);
@@ -21,7 +21,7 @@ skeletonimage=skeletonimage./255;
 opt=zeros(imy,imx);
 
 % person 불러오기
-person = imread('person_black5.bmp');
+person = imread('person_data/person_black7.bmp');
 personimage = double(person);
 personimage = personimage ./ 255;
 person_blur = imgaussfilt(personimage, 8);
@@ -142,11 +142,11 @@ for joint=1:6
         %x0 = [10, -15, 20, -13];
         setGlobalCount(4);
     elseif joint==5 %가랑이-왼쪽발
-        x0 = [getGlobalSpinBaseX, getGlobalSpinBaseY, getGlobalSpinBaseX-20, getGlobalSpinBaseY+25, 0];
+        x0 = [getGlobalSpinBaseX, getGlobalSpinBaseY, getGlobalSpinBaseX-20, getGlobalSpinBaseY+25, 0.2];
         %x0 = [-10, 10, -12, 20];
         setGlobalCount(5);
     elseif joint==6 %가랑이-오른쪽발
-        x0 = [getGlobalSpinBaseX, getGlobalSpinBaseY, getGlobalSpinBaseX+20, getGlobalSpinBaseY+25, 0];
+        x0 = [getGlobalSpinBaseX, getGlobalSpinBaseY, getGlobalSpinBaseX+20, getGlobalSpinBaseY+25, 0.2];
         %x0 = [10, 10, 12, 20];
         setGlobalCount(6);
    end
@@ -338,6 +338,11 @@ person_blur=im0;
 [imy,imx]=size(person_blur);
 opt=zeros(imy,imx);
 
+first_x1 = round(x(1));
+first_y1 = round(x(2));
+first_x2 = round(x(3));
+first_y2 = round(x(4));
+
 x1=round(x(1));
 y1=round(x(2));
 x2=round(x(3));
@@ -353,44 +358,44 @@ for a=1:getGlobalCount
 
     if getGlobalCount==2
         if round(x(2)) < round(x(4))
-            distanceX=round(x(1))-getGlobalSpinShoulderBaseX;
-            distanceY=round(x(2))-getGlobalSpinShoulderBaseY;
+            distanceX=first_x1-getGlobalSpinShoulderBaseX;
+            distanceY=first_y1-getGlobalSpinShoulderBaseY;
         else
-            distanceX=round(x(3))-getGlobalSpinShoulderBaseX;
-            distanceY=round(x(4))-getGlobalSpinShoulderBaseY;
+            distanceX=first_x2-getGlobalSpinShoulderBaseX;
+            distanceY=first_y2-getGlobalSpinShoulderBaseY;
         end
     elseif getGlobalCount==3
         if round(x(1)) < round(x(3))
-            distanceX=round(x(3))-getGlobalSpinShoulderBaseX;
-            distanceY=round(x(4))-getGlobalSpinShoulderBaseY;
+            distanceX=first_x2-getGlobalSpinShoulderBaseX;
+            distanceY=first_y2-getGlobalSpinShoulderBaseY;
         else
-            distanceX=round(x(1))-getGlobalSpinShoulderBaseX;
-            distanceY=round(x(2))-getGlobalSpinShoulderBaseY;
+            distanceX=first_x1-getGlobalSpinShoulderBaseX;
+            distanceY=first_y1-getGlobalSpinShoulderBaseY;
         end
          
     elseif getGlobalCount==4
         if round(x(1)) < round(x(3))
-            distanceX=round(x(1))-getGlobalSpinShoulderBaseX;
-            distanceY=round(x(2))-getGlobalSpinShoulderBaseY;
+            distanceX=first_x1-getGlobalSpinShoulderBaseX;
+            distanceY=first_y1-getGlobalSpinShoulderBaseY;
         else
-            distanceX=round(x(3))-getGlobalSpinShoulderBaseX;
-            distanceY=round(x(4))-getGlobalSpinShoulderBaseY;
+            distanceX=first_x2-getGlobalSpinShoulderBaseX;
+            distanceY=first_y2-getGlobalSpinShoulderBaseY;
         end
     elseif getGlobalCount==5
         if round(x(2)) < round(x(4))
-            distanceX=round(x(1))-getGlobalSpinBaseX;
-            distanceY=round(x(2))-getGlobalSpinBaseY;
+            distanceX=first_x1-getGlobalSpinBaseX;
+            distanceY=first_y1-getGlobalSpinBaseY;
         else
-            distanceX=round(x(3))-getGlobalSpinBaseX;
-            distanceY=round(x(4))-getGlobalSpinBaseY;
+            distanceX=first_x2-getGlobalSpinBaseX;
+            distanceY=first_y2-getGlobalSpinBaseY;
         end
     elseif getGlobalCount==6
         if round(x(2)) < round(x(4))
-            distanceX=round(x(1))-getGlobalSpinBaseX;
-            distanceY=round(x(2))-getGlobalSpinBaseY;
+            distanceX=first_x1-getGlobalSpinBaseX;
+            distanceY=first_y1-getGlobalSpinBaseY;
         else
-            distanceX=round(x(3))-getGlobalSpinBaseX;
-            distanceY=round(x(4))-getGlobalSpinBaseY;
+            distanceX=first_x2-getGlobalSpinBaseX;
+            distanceY=first_y2-getGlobalSpinBaseY;
         end
     end
 
@@ -573,6 +578,11 @@ for a=1:getGlobalCount
         y1=round((x1-min_x)*sin(rotation)+(y1-min_y)*cos(rotation) + min_y);
         x2=round((x2-min_x)*cos(rotation)-(y2-min_y)*sin(rotation) + min_x);
         y2=round((x2-min_x)*sin(rotation)+(y2-min_y)*cos(rotation) + min_y);
+        
+        first_x1 = x1;
+        first_y1 = y1;
+        first_x2 = x2;
+        first_y2 = y2;
     end
     %------------------------------------------------------------------
     
