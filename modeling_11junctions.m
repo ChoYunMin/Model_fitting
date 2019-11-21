@@ -123,11 +123,11 @@ for joint=1:10
         x0=[-10, -10, -5, 10, 0];
         setGlobalCount(2);
     elseif joint==3 %¾î±úÁß½É-¿ÞÂÊÆÈ²ÞÄ¡
-        x0 = [getGlobalSpinShoulderBaseX, getGlobalSpinShoulderBaseY, getGlobalSpinShoulderBaseX-15, getGlobalSpinShoulderBaseY, 0];
+        x0 = [getGlobalSpinShoulderBaseX, getGlobalSpinShoulderBaseY, getGlobalSpinShoulderBaseX-15, getGlobalSpinShoulderBaseY, 0.3];
         %x0 = [-10, -15, -20, -13];
         setGlobalCount(3);
     elseif joint==4 %¾î±úÁß½É-¿À¸¥ÂÊÆÈ²ÞÄ¡
-        x0 = [getGlobalSpinShoulderBaseX, getGlobalSpinShoulderBaseY, getGlobalSpinShoulderBaseX+15, getGlobalSpinShoulderBaseY, 0];
+        x0 = [getGlobalSpinShoulderBaseX, getGlobalSpinShoulderBaseY, getGlobalSpinShoulderBaseX+15, getGlobalSpinShoulderBaseY, 0.3];
         %x0 = [10, -15, 20, -13];
         setGlobalCount(4);
     elseif joint==5 %°¡¶ûÀÌ-¿ÞÂÊ¹«¸­
@@ -139,10 +139,10 @@ for joint=1:10
         %x0 = [10, 10, 12, 20];
         setGlobalCount(6);
     elseif joint==7 %¿ÞÂÊÆÈ²ÞÄ¡-¿ÞÂÊ¼Õ
-        x0 = [getGlobalLeftElbowX, getGlobalLeftElbowY, getGlobalLeftElbowX-15, getGlobalLeftElbowY, 0];
+        x0 = [getGlobalLeftElbowX, getGlobalLeftElbowY, getGlobalLeftElbowX-15, getGlobalLeftElbowY, 0.3];
         setGlobalCount(7);
     elseif joint==8 %¿À¸¥ÂÊÆÈ²ÞÄ¡-¿À¸¥ÂÊ¼Õ
-        x0 = [getGlobalRightElbowX, getGlobalRightElbowY, getGlobalRightElbowX+15, getGlobalRightElbowY, 0];
+        x0 = [getGlobalRightElbowX, getGlobalRightElbowY, getGlobalRightElbowX+15, getGlobalRightElbowY, 0.3];
         setGlobalCount(8);
     elseif joint==9 %¿ÞÂÊ¹«¸­-¿ÞÂÊ¹ß
         x0 = [getGlobalLeftKneeX, getGlobalLeftKneeY, getGlobalLeftKneeX-5, getGlobalLeftKneeY+15, 0];
@@ -257,7 +257,7 @@ end
 rname  = sprintf('opt_img');
 load (rname, 'im_opt');
 opt=im_opt;
-subplot(2,3,6); imagesc(opt+skeleton_blur);colormap('gray');drawnow;
+subplot(2,2,4); imagesc(opt+skeleton_blur);colormap('gray');drawnow;
 
 %À±¹Î¸¾´ë·Î - ³¡
 
@@ -705,7 +705,7 @@ end
 aver=sum_score / sum_count;
 
 % 
-subplot(2,3,4); imagesc(opt);colormap('gray');drawnow;
+subplot(2,2,2); imagesc(opt);colormap('gray');drawnow;
 %subplot(2,3,5); imagesc(G2);colormap('gray');drawnow;
 
 optpath  = sprintf('opt_img');
@@ -727,6 +727,11 @@ person_blur=im0;
 [imy,imx]=size(person_blur);
 opt=zeros(imy,imx);
 
+first_x1 = round(x(1));
+first_y1 = round(x(2));
+first_x2 = round(x(3));
+first_y2 = round(x(4));
+
 x1=round(x(1));
 y1=round(x(2));
 x2=round(x(3));
@@ -742,77 +747,77 @@ for a=1:getGlobalCount
 
     if getGlobalCount==2
         if round(x(2)) < round(x(4))
-            distanceX=round(x(1))-getGlobalSpinShoulderBaseX;
-            distanceY=round(x(2))-getGlobalSpinShoulderBaseY;
+            distanceX=first_x1-getGlobalSpinShoulderBaseX;
+            distanceY=first_y1-getGlobalSpinShoulderBaseY;
         else
-            distanceX=round(x(3))-getGlobalSpinShoulderBaseX;
-            distanceY=round(x(4))-getGlobalSpinShoulderBaseY;
+            distanceX=first_x2-getGlobalSpinShoulderBaseX;
+            distanceY=first_y2-getGlobalSpinShoulderBaseY;
         end
     elseif getGlobalCount==3
         if round(x(1)) < round(x(3))
-            distanceX=round(x(3))-getGlobalSpinShoulderBaseX;
-            distanceY=round(x(4))-getGlobalSpinShoulderBaseY;
+            distanceX=first_x2-getGlobalSpinShoulderBaseX;
+            distanceY=first_y2-getGlobalSpinShoulderBaseY;
         else
-            distanceX=round(x(1))-getGlobalSpinShoulderBaseX;
-            distanceY=round(x(2))-getGlobalSpinShoulderBaseY;
+            distanceX=first_x1-getGlobalSpinShoulderBaseX;
+            distanceY=first_y1-getGlobalSpinShoulderBaseY;
         end
          
     elseif getGlobalCount==4
         if round(x(1)) < round(x(3))
-            distanceX=round(x(1))-getGlobalSpinShoulderBaseX;
-            distanceY=round(x(2))-getGlobalSpinShoulderBaseY;
+            distanceX=first_x1-getGlobalSpinShoulderBaseX;
+            distanceY=first_y1-getGlobalSpinShoulderBaseY;
         else
-            distanceX=round(x(3))-getGlobalSpinShoulderBaseX;
-            distanceY=round(x(4))-getGlobalSpinShoulderBaseY;
+            distanceX=first_x2-getGlobalSpinShoulderBaseX;
+            distanceY=first_y2-getGlobalSpinShoulderBaseY;
         end
     elseif getGlobalCount==5
         if round(x(2)) < round(x(4))
-            distanceX=round(x(1))-getGlobalSpinBaseX;
-            distanceY=round(x(2))-getGlobalSpinBaseY;
+            distanceX=first_x1-getGlobalSpinBaseX;
+            distanceY=first_y1-getGlobalSpinBaseY;
         else
-            distanceX=round(x(3))-getGlobalSpinBaseX;
-            distanceY=round(x(4))-getGlobalSpinBaseY;
+            distanceX=first_x2-getGlobalSpinBaseX;
+            distanceY=first_y2-getGlobalSpinBaseY;
         end
     elseif getGlobalCount==6
         if round(x(2)) < round(x(4))
-            distanceX=round(x(1))-getGlobalSpinBaseX;
-            distanceY=round(x(2))-getGlobalSpinBaseY;
+            distanceX=first_x1-getGlobalSpinBaseX;
+            distanceY=first_y1-getGlobalSpinBaseY;
         else
-            distanceX=round(x(3))-getGlobalSpinBaseX;
-            distanceY=round(x(4))-getGlobalSpinBaseY;
+            distanceX=first_x2-getGlobalSpinBaseX;
+            distanceY=first_y2-getGlobalSpinBaseY;
         end
     elseif getGlobalCount==7
         if round(x(1)) < round(x(3))
-            distanceX=round(x(3))-getGlobalLeftElbowX;
-            distanceY=round(x(4))-getGlobalLeftElbowY;
+            distanceX=first_x2-getGlobalLeftElbowX;
+            distanceY=first_y2-getGlobalLeftElbowY;
         else
-            distanceX=round(x(1))-getGlobalLeftElbowX;
-            distanceY=round(x(2))-getGlobalLeftElbowY;
+            distanceX=first_x1-getGlobalLeftElbowX;
+            distanceY=first_y1-getGlobalLeftElbowY;
         end
     elseif getGlobalCount==8
         if round(x(1)) < round(x(3))
-            distanceX=round(x(1))-getGlobalRightElbowX;
-            distanceY=round(x(2))-getGlobalRightElbowY;
+            distanceX=first_x1-getGlobalRightElbowX;
+            distanceY=first_y1-getGlobalRightElbowY;
         else
-            distanceX=round(x(3))-getGlobalRightElbowX;
-            distanceY=round(x(4))-getGlobalRightElbowY;
+            distanceX=first_x2-getGlobalRightElbowX;
+            distanceY=first_y2-getGlobalRightElbowY;
         end
     elseif getGlobalCount==9
         if round(x(2)) < round(x(4))
-            distanceX=round(x(1))-getGlobalLeftKneeX;
-            distanceY=round(x(2))-getGlobalLeftKneeY;
+            distanceX=first_x1-getGlobalLeftKneeX;
+            distanceY=first_y1-getGlobalLeftKneeY;
         else
-            distanceX=round(x(3))-getGlobalLeftKneeX;
-            distanceY=round(x(4))-getGlobalLeftKneeY;
+            distanceX=first_x2-getGlobalLeftKneeX;
+            distanceY=first_y2-getGlobalLeftKneeY;
         end
         
     elseif getGlobalCount==10
         if round(x(2)) < round(x(4))
-            distanceX=round(x(1))-getGlobalRightKneeX;
-            distanceY=round(x(2))-getGlobalRightKneeY;
+            distanceX=first_x1-getGlobalRightKneeX;
+            distanceY=first_y1-getGlobalRightKneeY;
         else
-            distanceX=round(x(3))-getGlobalRightKneeX;
-            distanceY=round(x(4))-getGlobalRightKneeY;
+            distanceX=first_x2-getGlobalRightKneeX;
+            distanceY=first_y2-getGlobalRightKneeY;
         end
     end
 
@@ -1015,6 +1020,11 @@ for a=1:getGlobalCount
         y1=round((x1-min_x)*sin(rotation)+(y1-min_y)*cos(rotation) + min_y);
         x2=round((x2-min_x)*cos(rotation)-(y2-min_y)*sin(rotation) + min_x);
         y2=round((x2-min_x)*sin(rotation)+(y2-min_y)*cos(rotation) + min_y);
+        
+        first_x1 = x1;
+        first_y1 = y1;
+        first_x2 = x2;
+        first_y2 = y2;
     end
     %------------------------------------------------------------------
     
