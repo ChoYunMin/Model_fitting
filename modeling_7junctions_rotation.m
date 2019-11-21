@@ -3,7 +3,7 @@
 
 %테스트 - 관절 줄이기: 팔꿈치, 무릎 없애고 찾기
 %테스트 - rotation 추가
-%테스트 - skeleton end point 높이기
+%%테스트 - skeleton end point 높이기
 
 function o = otest
 
@@ -36,44 +36,45 @@ for i=1:imy
     end
 end
 
-%skeleton end point 높이기----------------
-skeleton_blur = imgaussfilt(skeletonimage, 7);
-skeletonimage = skeletonimage - skeleton_blur;
-skeletonimage = skeletonimage + 1;
-skel_max=0;
-for i=1:imy
-    for j=1:imx
-        if skeletonimage(i,j)>=1
-            skeletonimage(i,j)=1;
-        else
-            if skeletonimage(i,j) > skel_max
-                skel_max=skeletonimage(i,j);
-            end
-        end
-    end
-end
-%---------------------------------------------
-
 %skeleton 두껍게 하기------------------
-% se = strel('ball',3,3);
-% skeletonimage=imerode(skeletonimage,se);
-% 
+se = strel('ball',5, 2);
+skeletonimage=imerode(skeletonimage,se);
+skeletonimage = skeletonimage + 2;
+
 % maximum=max(max(skeletonimage))
 % for i=1:imy
 %     for j=1:imx
 %         if skeletonimage(i,j)==maximum
 %             skeletonimage(i,j)=1;
 %         else
-%             skeletonimage(i,j)=minimum-0.01;
+%             skeletonimage(i,j)=0;
 %         end
 %     end
 % end
 %----------------------------------------
 
+%skeleton end point 높이기----------------
+% skeleton_blur = imgaussfilt(skeletonimage, 5);
+% skeletonimage = skeletonimage - skeleton_blur;
+% skeletonimage = skeletonimage + 1;
+% skel_max=0;
+% for i=1:imy
+%     for j=1:imx
+%         if skeletonimage(i,j)>=1
+%             skeletonimage(i,j)=1;
+%         else
+%             if skeletonimage(i,j) > skel_max
+%                 skel_max=skeletonimage(i,j);
+%             end
+%         end
+%     end
+% end
+%---------------------------------------------
+
 for yy=1:imy
     for xx=1:imx
         if skeletonimage(yy, xx) ~= 1
-            person_blur(yy, xx) = skeletonimage(yy, xx);
+            person_blur(yy, xx) =person_blur(yy, xx) * skeletonimage(yy, xx);
         end
     end
 end
@@ -82,7 +83,7 @@ end
 sigma=1.0;
 s=2.0 * sigma * sigma;
 sum_filter=0;
-masksize=7;
+masksize=15;
 
 for a=masksize*(-1):masksize
     for b=masksize*(-1):masksize
@@ -101,7 +102,7 @@ end
 for a=masksize+1:imy-masksize
     for b=masksize+1:imx-masksize
         sum_gaussian = 0;
-        if person_blur(a, b) > skel_max
+        if person_blur(a, b) > 0.01
             for c=masksize*(-1):masksize
                 for d=masksize*(-1):masksize
                     sum_gaussian = sum_gaussian + person_blur(a+c, b+d) * Gkernel(c+masksize+1, d+masksize+1);

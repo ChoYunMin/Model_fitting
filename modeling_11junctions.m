@@ -5,7 +5,7 @@ function o = otest
 clear all;
 dct_driven=1;
 
-firstim = imread('person_data/person_skeleton6.jpg'); 
+firstim = imread('person_data/person_skeleton.jpg'); 
 %firstim = imread('md2.jpg');
 %firstimage=double(rgb2gray(firstim));
 firstimage=double(firstim);
@@ -16,12 +16,12 @@ firstimage=firstimage./255;
 opt=zeros(imy,imx);
 
 % skeleton 불러오기
-skeleton = imread('person_data/person_black6.bmp');
+skeleton = imread('person_data/person_black.bmp');
 skeletonimage = double(skeleton);
 skeletonimage = skeletonimage ./ 255;
 skeleton_blur = imgaussfilt(skeletonimage, 8);
 
-minimum=min(min(skeleton_blur));
+%minimum=min(min(skeleton_blur));
 
 for i=1:imy
     for j=1:imx
@@ -33,22 +33,39 @@ for i=1:imy
     end
 end
 
+%skeleton 두껍게 하기------------------
+se = strel('ball',5, 2);
+firstimage=imerode(firstimage,se);
+firstimage = firstimage + 2;
+
+% maximum=max(max(skeletonimage))
+% for i=1:imy
+%     for j=1:imx
+%         if skeletonimage(i,j)==maximum
+%             skeletonimage(i,j)=1;
+%         else
+%             skeletonimage(i,j)=0;
+%         end
+%     end
+% end
+%----------------------------------------
+
 %skeleton end point 높이기----------------
-first_blur = imgaussfilt(firstimage, 7);
-firstimage = firstimage - first_blur;
-firstimage = firstimage + 1;
-first_max=0;
-for i=1:imy
-    for j=1:imx
-        if firstimage(i,j)>1
-            firstimage(i,j)=1;
-        else
-            if firstimage(i,j) > first_max
-                first_max=firstimage(i,j);
-            end
-        end
-    end
-end
+% first_blur = imgaussfilt(firstimage, 3);
+% firstimage = firstimage - first_blur;
+% firstimage = firstimage + 1;
+% first_max=0;
+% for i=1:imy
+%     for j=1:imx
+%         if firstimage(i,j) >= 1
+%             firstimage(i,j)=1;
+%         else
+%             if firstimage(i,j) > first_max
+%                 first_max=firstimage(i,j);
+%             end
+%         end
+%     end
+% end
 %---------------------------------------------
 
 % subplot(2,3,1); imagesc(firstimage);colormap('gray');drawnow; %이미지 그리기
@@ -62,7 +79,7 @@ end
 for yy=1:imy
     for xx=1:imx
         if firstimage(yy, xx) ~= 1
-            skeleton_blur(yy, xx) = firstimage(yy, xx);
+            skeleton_blur(yy, xx) =skeleton_blur(yy, xx) * firstimage(yy, xx);
         end
     end
 end
@@ -71,7 +88,7 @@ end
 sigma=1.0;
 s=2.0 * sigma * sigma;
 sum_filter=0;
-masksize=5;
+masksize=15;
 
 for a=masksize*(-1):masksize
     for b=masksize*(-1):masksize
@@ -90,7 +107,7 @@ end
 for a=masksize+1:imy-masksize
     for b=masksize+1:imx-masksize
         sum_gaussian = 0;
-        if skeleton_blur(a, b) > first_max
+        if skeleton_blur(a, b) > 0.01
             for c=masksize*(-1):masksize
                 for d=masksize*(-1):masksize
                     sum_gaussian = sum_gaussian + skeleton_blur(a+c, b+d) * Gkernel(c+masksize+1, d+masksize+1);
