@@ -10,7 +10,7 @@ function o = otest
 clear all;
 dct_driven=1;
 
-skeletonim = imread('person_data/person_skeleton7.jpg'); 
+skeletonim = imread('person_data/person_skeleton6.jpg'); 
 %skeletonim = imread('md2.jpg');
 %skeletonimage=double(rgb2gray(skeletonim));
 skeletonimage=double(skeletonim);
@@ -21,7 +21,7 @@ skeletonimage=skeletonimage./255;
 opt=zeros(imy,imx);
 
 % person 불러오기
-person = imread('person_data/person_black7.bmp');
+person = imread('person_data/person_black6.bmp');
 personimage = double(person);
 personimage = personimage ./ 255;
 person_blur = imgaussfilt(personimage, 8);

@@ -5,7 +5,7 @@ function o = otest
 clear all;
 dct_driven=1;
 
-firstim = imread('person_data/person_skeleton7.jpg'); 
+firstim = imread('person_data/person_skeleton6.jpg'); 
 %firstim = imread('md2.jpg');
 %firstimage=double(rgb2gray(firstim));
 firstimage=double(firstim);
@@ -16,7 +16,7 @@ firstimage=firstimage./255;
 opt=zeros(imy,imx);
 
 % skeleton ºÒ·¯¿À±â
-skeleton = imread('person_data/person_black7.bmp');
+skeleton = imread('person_data/person_black6.bmp');
 skeletonimage = double(skeleton);
 skeletonimage = skeletonimage ./ 255;
 skeleton_blur = imgaussfilt(skeletonimage, 8);
@@ -257,7 +257,7 @@ end
 rname  = sprintf('opt_img');
 load (rname, 'im_opt');
 opt=im_opt;
-subplot(2,3,6); imagesc(opt+skeleton_blur);colormap('gray');drawnow;
+subplot(2,2,4); imagesc(opt+skeleton_blur);colormap('gray');drawnow;
 
 %À±¹Î¸¾´ë·Î - ³¡
 
@@ -705,7 +705,7 @@ end
 aver=sum_score / sum_count;
 
 % 
-subplot(2,3,4); imagesc(opt);colormap('gray');drawnow;
+subplot(2,2,2); imagesc(opt);colormap('gray');drawnow;
 %subplot(2,3,5); imagesc(G2);colormap('gray');drawnow;
 
 optpath  = sprintf('opt_img');
