@@ -5,129 +5,172 @@ function o = otest
 clear all;
 dct_driven=1;
 
-firstim = imread('person_data/person_skeleton.jpg'); 
-%firstim = imread('md2.jpg');
-%firstimage=double(rgb2gray(firstim));
-firstimage=double(firstim);
-firstimage=255-firstimage;
-firstimage=firstimage./255;
+skeletonim = imread('person_data/person_skeleton3.jpg'); 
+%skeletonim = imread('md2.jpg');
+%skeletonimage=double(rgb2gray(skeletonim));
+skeletonimage=double(skeletonim);
+skeletonimage=255-skeletonimage;
+skeletonimage=skeletonimage./255;
 
-[imy,imx]=size(firstimage);
+[imy,imx]=size(skeletonimage);
 opt=zeros(imy,imx);
 
-% skeleton 불러오기
-skeleton = imread('person_data/person_black.bmp');
-skeletonimage = double(skeleton);
-skeletonimage = skeletonimage ./ 255;
-skeleton_blur = imgaussfilt(skeletonimage, 8);
+% person 불러오기
+person = imread('person_data/person_black3.bmp');
+personimage = double(person);
+personimage = personimage ./ 255;
+person_blur = imgaussfilt(personimage, 8);
 
-%minimum=min(min(skeleton_blur));
+%minimum=min(min(person_blur));
 
 for i=1:imy
     for j=1:imx
-        if firstimage(i,j)>0.9
-            firstimage(i,j)=1;
+        if skeletonimage(i,j)>0.9
+            skeletonimage(i,j)=1;
         else
-            firstimage(i,j)=0;
+            skeletonimage(i,j)=0;
         end
     end
 end
 
-%skeleton 두껍게 하기------------------
-se = strel('ball',5, 2);
-firstimage=imerode(firstimage,se);
-firstimage = firstimage + 2;
-
-% maximum=max(max(skeletonimage))
+%skeleton end point 높이기----------------
+% skeleton_blur = imgaussfilt(skeletonimage, 3);
+% skeletonimage = skeletonimage - skeleton_blur;
+% skeletonimage = skeletonimage + 1;
+% skeleton_max=0;
 % for i=1:imy
 %     for j=1:imx
-%         if skeletonimage(i,j)==maximum
+%         if skeletonimage(i,j) >= 1
 %             skeletonimage(i,j)=1;
 %         else
-%             skeletonimage(i,j)=0;
-%         end
-%     end
-% end
-%----------------------------------------
-
-%skeleton end point 높이기----------------
-% first_blur = imgaussfilt(firstimage, 3);
-% firstimage = firstimage - first_blur;
-% firstimage = firstimage + 1;
-% first_max=0;
-% for i=1:imy
-%     for j=1:imx
-%         if firstimage(i,j) >= 1
-%             firstimage(i,j)=1;
-%         else
-%             if firstimage(i,j) > first_max
-%                 first_max=firstimage(i,j);
+%             if skeletonimage(i,j) > skeleton_max
+%                 skeleton_max=skeletonimage(i,j);
 %             end
 %         end
 %     end
 % end
 %---------------------------------------------
 
-% subplot(2,3,1); imagesc(firstimage);colormap('gray');drawnow; %이미지 그리기
+%skeleton 두껍게 하기------------------
+se = strel('ball',5, 2);
+skeletonimage=imerode(skeletonimage,se);
+skeletonimage = skeletonimage + 2;
+
+maximum=max(max(skeletonimage));
+minimum=min(min(skeletonimage));
+%skel_max=0;
+for i=1:imy
+    for j=1:imx
+        if skeletonimage(i,j) >= 1
+            skeletonimage(i,j)=1;
+        else
+            if minimum == skeletonimage(i, j)
+                skeletonimage(i, j)=0;
+            end
+        end
+    end
+end
+%----------------------------------------
+
+% subplot(2,3,1); imagesc(skeletonimage);colormap('gray');drawnow; %이미지 그리기
 % wpath  = sprintf('tmp_img');
-% im0=firstimage;
+% im0=skeletonimage;
 % save(wpath,'im0');
 
 %skeletonimage = 255-skeletonimage;
 
-%skeleton_blur=skeleton_blur.*firstimage;
+%person_blur=person_blur.*skeletonimage;
 for yy=1:imy
     for xx=1:imx
-        if firstimage(yy, xx) ~= 1
-            skeleton_blur(yy, xx) =skeleton_blur(yy, xx) * firstimage(yy, xx);
+        if skeletonimage(yy, xx) ~= 1
+            person_blur(yy, xx) =person_blur(yy, xx) * skeletonimage(yy, xx);
         end
     end
 end
 
-%for문을 이용한 smoothing filter 만들기
-sigma=1.0;
-s=2.0 * sigma * sigma;
-sum_filter=0;
-masksize=15;
+%for문을 이용한 smoothing filter 만들기----------------------------------
+% sigma=1.0;
+% s=2.0 * sigma * sigma;
+% sum_filter=0;
+% masksize=7;
+% 
+% for a=masksize*(-1):masksize
+%     for b=masksize*(-1):masksize
+%         r=sqrt(a*a + b*b);
+%         Gkernel(a+masksize+1, b+masksize+1)=(exp(-(r*r)/s))/(3.14 * s);
+%         sum_filter = sum_filter + Gkernel(a+masksize+1, b+masksize+1);
+%     end
+% end
+% 
+% for a=1:masksize*2+1
+%     for b=1:masksize*2+1
+%         Gkernel(a,b) = Gkernel(a, b) / sum_filter;
+%     end
+% end
+% 
+% for a=masksize+1:imy-masksize
+%     for b=masksize+1:imx-masksize
+%         sum_gaussian = 0;
+%         if person_blur(a, b) ~= 0
+%             for c=masksize*(-1):masksize
+%                 for d=masksize*(-1):masksize
+%                     sum_gaussian = sum_gaussian + (person_blur(a+c, b+d) * Gkernel(c+masksize+1, d+masksize+1));
+%                 end
+%             end
+%             
+%             person_blur(a, b) = sum_gaussian;
+%         end
+%         
+%     end
+% end
+%-----------------------------------------------------------------------
 
-for a=masksize*(-1):masksize
-    for b=masksize*(-1):masksize
-        r=sqrt(a*a + b*b);
-        Gkernel(a+masksize+1, b+masksize+1)=(exp(-(r*r)/s))/(3.14 * s);
-        sum_filter = sum_filter + Gkernel(a+masksize+1, b+masksize+1);
-    end
-end
+%for문을 이용한 평균필터
+% H = fspecial('average',10);
+% person_blur = imfilter(person_blur,H,'replicate');
 
-for a=1:masksize*2+1
-    for b=1:masksize*2+1
-        Gkernel(a,b) = Gkernel(a, b) / sum_filter;
-    end
-end
-
-for a=masksize+1:imy-masksize
-    for b=masksize+1:imx-masksize
-        sum_gaussian = 0;
-        if skeleton_blur(a, b) > 0.01
-            for c=masksize*(-1):masksize
-                for d=masksize*(-1):masksize
-                    sum_gaussian = sum_gaussian + skeleton_blur(a+c, b+d) * Gkernel(c+masksize+1, d+masksize+1);
+for b=1:imx
+    for a=1:imy
+        sum_average = 0;
+        
+        if person_blur(a, b) ~= 0
+            
+            if 0 < person_blur(a, b) && person_blur(a, b) < 0.3
+                masksize=5;
+            elseif 0.3 <= person_blur(a, b) && person_blur(a, b) < 0.6
+                masksize=9;
+            elseif 0.6 <= person_blur(a, b) && person_blur(a, b) < 1
+                masksize=13;
+            end
+            
+            for c=(masksize-1)/2*(-1):(masksize-1)/2
+                for d=(masksize-1)/2*(-1):(masksize-1)/2
+                    if a+c < 1 || a+c > imy || b+d < 1 || b+d > imx
+                        sum_average = sum_average + 1;
+                    else
+                        sum_average = sum_average + person_blur(a+c, b+d);
+                    end
+                    
                 end
             end
             
-            skeleton_blur(a, b) = sum_gaussian;
+            person_blur(a, b) = sum_average / (masksize*masksize);
         end
         
     end
 end
 
-subplot(2,2,1); imagesc(skeleton_blur);colormap('gray');drawnow; %이미지 그리기
+%-----------------------------------------------------------------------
+
+
+subplot(2,2,1); imagesc(person_blur);colormap('gray');drawnow; %이미지 그리기
 wpath  = sprintf('tmp_img');
-im0=skeleton_blur;
+im0=person_blur;
 save(wpath,'im0');
-%skeleton_blur=(skeleton_blur-128)/128;
+%person_blur=(person_blur-128)/128;
 
 %관절 탐색 - 윤민 마음대로~
-for joint=1:10
+for joint=1:2
    if joint==1 %머리-어깨중심
        %x0 = [0, -30, 0, -10, 0, 10, -15, -10, 15, -10, -30, -10, 30, -10, -5, 15, 5, 15, -15, 25, 15, 25];
        %x0 = [0, 10, 5, 15, 15, 25, -5, 15, -15, 25];
@@ -138,6 +181,7 @@ for joint=1:10
     elseif joint==2 %어깨중심-가랑이
         %x0=[getGlobalSpinShoulderBaseX, getGlobalSpinShoulderBaseY, -10, 5];
         x0=[-10, -10, -5, 10, 0];
+        %x0=[-20, -10, -15, 10, 0];
         setGlobalCount(2);
     elseif joint==3 %어깨중심-왼쪽팔꿈치
         x0 = [getGlobalSpinShoulderBaseX, getGlobalSpinShoulderBaseY, getGlobalSpinShoulderBaseX-15, getGlobalSpinShoulderBaseY, 0.3];
@@ -156,10 +200,10 @@ for joint=1:10
         %x0 = [10, 10, 12, 20];
         setGlobalCount(6);
     elseif joint==7 %왼쪽팔꿈치-왼쪽손
-        x0 = [getGlobalLeftElbowX, getGlobalLeftElbowY, getGlobalLeftElbowX-15, getGlobalLeftElbowY, 0.3];
+        x0 = [getGlobalLeftElbowX, getGlobalLeftElbowY, getGlobalLeftElbowX-15, getGlobalLeftElbowY+3, 0.3];
         setGlobalCount(7);
     elseif joint==8 %오른쪽팔꿈치-오른쪽손
-        x0 = [getGlobalRightElbowX, getGlobalRightElbowY, getGlobalRightElbowX+15, getGlobalRightElbowY, 0.3];
+        x0 = [getGlobalRightElbowX, getGlobalRightElbowY, getGlobalRightElbowX+15, getGlobalRightElbowY+3, 0.3];
         setGlobalCount(8);
     elseif joint==9 %왼쪽무릎-왼쪽발
         x0 = [getGlobalLeftKneeX, getGlobalLeftKneeY, getGlobalLeftKneeX-5, getGlobalLeftKneeY+15, 0];
@@ -256,13 +300,13 @@ x(5)=x(5)-45;
 x=x+45
 
 % 
-% skeleton_blur2=skeleton_blur.*opt;
-% %skeletonimage2=(skeletonimage-opt)*128+128;
+% person_blur2=person_blur.*opt;
+% %personimage2=(personimage-opt)*128+128;
 % % wpath  = sprintf('tmp_img');
-% % im0=skeletonimage2;
+% % im0=personimage2;
 % % save(wpath,'im0');
 
-%subplot(2,3,3); imagesc(skeleton_blur);colormap('gray');drawnow;
+%subplot(2,3,3); imagesc(person_blur);colormap('gray');drawnow;
 % subplot(2,3,5); imagesc(opt);colormap('gray');drawnow;
    
 end
@@ -274,7 +318,7 @@ end
 rname  = sprintf('opt_img');
 load (rname, 'im_opt');
 opt=im_opt;
-subplot(2,2,4); imagesc(opt+skeleton_blur);colormap('gray');drawnow;
+subplot(2,2,4); imagesc(opt+person_blur);colormap('gray');drawnow;
 
 %윤민맘대로 - 끝
 
@@ -426,11 +470,11 @@ r = LeftFoot(2);
 function F = myfun_yunmin(x)
 rname  = sprintf('tmp_img');
 load (rname, 'im0');
-skeleton_blur=im0;
-%subplot(2,3,6); imagesc(firstimage);colormap('gray');drawnow;
-%firstim = imread('face.png');
-%firstimage=double(rgb2gray(firstim));
-[imy,imx]=size(skeleton_blur);
+person_blur=im0;
+%subplot(2,3,6); imagesc(skeletonimage);colormap('gray');drawnow;
+%skeletonim = imread('face.png');
+%skeletonimage=double(rgb2gray(skeletonim));
+[imy,imx]=size(person_blur);
 opt=zeros(imy,imx);
 
 x1=round(x(1));
@@ -595,7 +639,7 @@ for a=1:getGlobalCount
     
     if x1==x2
         for i=min(y1,y2):max(y1,y2)
-            sum_score=sum_score+skeleton_blur(half_imy+i,half_imx+x1);
+            sum_score=sum_score+person_blur(half_imy+i,half_imx+x1);
             sum_count=sum_count+1;
             opt(half_imy+i,half_imx+x1)=1;
         end
@@ -605,14 +649,14 @@ for a=1:getGlobalCount
             if y2 > y1
                     for j=x1:x2
                         y=gradient*(j-x1)+y1;
-                        sum_score=sum_score+skeleton_blur(half_imy+round(y),half_imx+j);
+                        sum_score=sum_score+person_blur(half_imy+round(y),half_imx+j);
                         sum_count=sum_count+1;
                         opt(half_imy+round(y),half_imx+j)=1;
                         
                         if j>x1
                             if abs(pastY-round(y))>sqrt(2)
                                for k=pastY:round(y)
-                                   sum_score=sum_score+skeleton_blur(half_imy+k, half_imx+j);
+                                   sum_score=sum_score+person_blur(half_imy+k, half_imx+j);
                                    sum_count=sum_count+1;
                                    opt(half_imy+k, half_imx+j)=1;
                                end
@@ -623,14 +667,14 @@ for a=1:getGlobalCount
             else
                     for j=x2:x1
                         y=gradient*(j-x1)+y1;
-                        sum_score=sum_score+skeleton_blur(half_imy+round(y),half_imx+j);
+                        sum_score=sum_score+person_blur(half_imy+round(y),half_imx+j);
                         sum_count=sum_count+1;
                         opt(half_imy+round(y),half_imx+j)=1; 
                         
                         if j>x2
                             if abs(pastY-round(y))>sqrt(2)
                                for k=pastY:round(y)
-                                   sum_score=sum_score+skeleton_blur(half_imy+k, half_imx+j);
+                                   sum_score=sum_score+person_blur(half_imy+k, half_imx+j);
                                    sum_count=sum_count+1;
                                    opt(half_imy+k, half_imx+j)=1;
                                end
@@ -643,14 +687,14 @@ for a=1:getGlobalCount
             if y2 > y1
                     for j=x2:x1
                         y=gradient*(j-x1)+y1;
-                        sum_score=sum_score+skeleton_blur(half_imy+round(y),half_imx+j);
+                        sum_score=sum_score+person_blur(half_imy+round(y),half_imx+j);
                         sum_count=sum_count+1;
                         opt(half_imy+round(y),half_imx+j)=1;
                         
                         if j>x2
                             if abs(pastY-round(y))>sqrt(2)
                                for k=round(y):pastY
-                                   sum_score=sum_score+skeleton_blur(half_imy+k, half_imx+j);
+                                   sum_score=sum_score+person_blur(half_imy+k, half_imx+j);
                                    sum_count=sum_count+1;
                                    opt(half_imy+k, half_imx+j)=1;
                                end
@@ -661,14 +705,14 @@ for a=1:getGlobalCount
             elseif y1 > y2
                     for j=x1:x2
                         y=gradient*(j-x1)+y1;
-                        sum_score=sum_score+skeleton_blur(half_imy+round(y),half_imx+j);
+                        sum_score=sum_score+person_blur(half_imy+round(y),half_imx+j);
                         sum_count=sum_count+1;
                         opt(half_imy+round(y),half_imx+j)=1;
                         
                         if j>x1
                             if abs(pastY-round(y))>sqrt(2)
                                for k=round(y):pastY
-                                   sum_score=sum_score+skeleton_blur(half_imy+k, half_imx+j);
+                                   sum_score=sum_score+person_blur(half_imy+k, half_imx+j);
                                    sum_count=sum_count+1;
                                    opt(half_imy+k, half_imx+j)=1;
                                end
@@ -680,14 +724,14 @@ for a=1:getGlobalCount
                 if x1 > x2
                     for j=x2:x1
                         y=gradient*(j-x1)+y1;
-                        sum_score=sum_score+skeleton_blur(half_imy+round(y),half_imx+j);
+                        sum_score=sum_score+person_blur(half_imy+round(y),half_imx+j);
                         sum_count=sum_count+1;
                         opt(half_imy+round(y),half_imx+j)=1;
                     end
                 else
                     for j=x1:x2
                         y=gradient*(j-x1)+y1;
-                        sum_score=sum_score+skeleton_blur(half_imy+round(y),half_imx+j);
+                        sum_score=sum_score+person_blur(half_imy+round(y),half_imx+j);
                         sum_count=sum_count+1;
                         opt(half_imy+round(y),half_imx+j)=1;
                     end
@@ -729,8 +773,8 @@ optpath  = sprintf('opt_img');
 im_opt=opt;
 save(optpath,'im_opt');
 
-%F = var(var((skeletonimage-G2)));
-%F = ((abs(skeleton_blur-opt)));
+%F = var(var((personimage-G2)));
+%F = ((abs(person_blur-opt)));
 F=aver;
 
 %rotation 추가------------------------------------------------------
@@ -738,9 +782,9 @@ function F = myfun_yunmin_rotation(x)
 rname  = sprintf('tmp_img');
 load (rname, 'im0');
 person_blur=im0;
-%subplot(2,3,6); imagesc(skeletonimage);colormap('gray');drawnow;
-%skeletonim = imread('face.png');
-%skeletonimage=double(rgb2gray(skeletonim));
+%subplot(2,3,6); imagesc(personimage);colormap('gray');drawnow;
+%personim = imread('face.png');
+%personimage=double(rgb2gray(personim));
 [imy,imx]=size(person_blur);
 opt=zeros(imy,imx);
 

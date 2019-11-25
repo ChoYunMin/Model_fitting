@@ -36,23 +36,6 @@ for i=1:imy
     end
 end
 
-%skeleton 두껍게 하기------------------
-se = strel('ball',5, 2);
-skeletonimage=imerode(skeletonimage,se);
-skeletonimage = skeletonimage + 2;
-
-% maximum=max(max(skeletonimage))
-% for i=1:imy
-%     for j=1:imx
-%         if skeletonimage(i,j)==maximum
-%             skeletonimage(i,j)=1;
-%         else
-%             skeletonimage(i,j)=0;
-%         end
-%     end
-% end
-%----------------------------------------
-
 %skeleton end point 높이기----------------
 % skeleton_blur = imgaussfilt(skeletonimage, 5);
 % skeletonimage = skeletonimage - skeleton_blur;
@@ -65,11 +48,35 @@ skeletonimage = skeletonimage + 2;
 %         else
 %             if skeletonimage(i,j) > skel_max
 %                 skel_max=skeletonimage(i,j);
+%                 skel_maxX=j; skel_maxY=i;
 %             end
 %         end
 %     end
 % end
 %---------------------------------------------
+
+%skeleton 두껍게 하기------------------
+se = strel('ball',5, 2);
+skeletonimage=imerode(skeletonimage,se);
+skeletonimage = skeletonimage + 2;
+
+maximum=max(max(skeletonimage));
+minimum=min(min(skeletonimage));
+%skel_max=0;
+for i=1:imy
+    for j=1:imx
+        if skeletonimage(i,j) >= 1
+            skeletonimage(i,j)=1;
+        else
+            if minimum == skeletonimage(i, j)
+                skeletonimage(i, j)=0;
+            end
+        end
+    end
+end
+%----------------------------------------
+
+
 
 for yy=1:imy
     for xx=1:imx
@@ -78,42 +85,81 @@ for yy=1:imy
         end
     end
 end
+%skel_max=person_blur(skel_maxY, skel_maxX);
 
-%for문을 이용한 smoothing filter 만들기
-sigma=1.0;
-s=2.0 * sigma * sigma;
-sum_filter=0;
-masksize=15;
+%for문을 이용한 smoothing filter 만들기----------------------------------
+% sigma=1.0;
+% s=2.0 * sigma * sigma;
+% sum_filter=0;
+% masksize=15;
+% 
+% for a=masksize*(-1):masksize
+%     for b=masksize*(-1):masksize
+%         r=sqrt(a*a + b*b);
+%         Gkernel(a+masksize+1, b+masksize+1)=(exp(-(r*r)/s))/(3.14 * s);
+%         sum_filter = sum_filter + Gkernel(a+masksize+1, b+masksize+1);
+%     end
+% end
+% 
+% for a=1:masksize*2+1
+%     for b=1:masksize*2+1
+%         Gkernel(a,b) = Gkernel(a, b) / sum_filter;
+%     end
+% end
+% 
+% for a=masksize+1:imy-masksize
+%     for b=masksize+1:imx-masksize
+%         sum_gaussian = 0;
+%         if person_blur(a, b) ~= 0
+%             for c=masksize*(-1):masksize
+%                 for d=masksize*(-1):masksize
+%                     sum_gaussian = sum_gaussian + (person_blur(a+c, b+d) * Gkernel(c+masksize+1, d+masksize+1));
+%                 end
+%             end
+%             
+%             person_blur(a, b) = sum_gaussian;
+%         end
+%         
+%     end
+% end
+%-----------------------------------------------------------------------
+%for문을 이용한 평균필터
+% H = fspecial('average',10);
+% person_blur = imfilter(person_blur,H,'replicate');
+max_masksize=13;
 
-for a=masksize*(-1):masksize
-    for b=masksize*(-1):masksize
-        r=sqrt(a*a + b*b);
-        Gkernel(a+masksize+1, b+masksize+1)=(exp(-(r*r)/s))/(3.14 * s);
-        sum_filter = sum_filter + Gkernel(a+masksize+1, b+masksize+1);
-    end
-end
-
-for a=1:masksize*2+1
-    for b=1:masksize*2+1
-        Gkernel(a,b) = Gkernel(a, b) / sum_filter;
-    end
-end
-
-for a=masksize+1:imy-masksize
-    for b=masksize+1:imx-masksize
-        sum_gaussian = 0;
-        if person_blur(a, b) > 0.01
-            for c=masksize*(-1):masksize
-                for d=masksize*(-1):masksize
-                    sum_gaussian = sum_gaussian + person_blur(a+c, b+d) * Gkernel(c+masksize+1, d+masksize+1);
+for b=1:imx
+    for a=1:imy
+        sum_average = 0;
+        
+        if person_blur(a, b) ~= 0
+            
+            if 0 < person_blur(a, b) && person_blur(a, b) < 0.3
+                masksize=5;
+            elseif 0.3 <= person_blur(a, b) && person_blur(a, b) < 0.6
+                masksize=9;
+            elseif 0.6 <= person_blur(a, b) && person_blur(a, b) < 1
+                masksize=13;
+            end
+            
+            for c=(masksize-1)/2*(-1):(masksize-1)/2
+                for d=(masksize-1)/2*(-1):(masksize-1)/2
+                    if a+c < 1 || a+c > imy || b+d < 1 || b+d > imx
+                        sum_average = sum_average + 1;
+                    else
+                        sum_average = sum_average + person_blur(a+c, b+d);
+                    end
+                    
                 end
             end
             
-            person_blur(a, b) = sum_gaussian;
+            person_blur(a, b) = sum_average / (masksize*masksize);
         end
         
     end
 end
+
+%-----------------------------------------------------------------------
 
 subplot(2,2,1); imagesc(person_blur);colormap('gray');drawnow; %이미지 그리기
 wpath  = sprintf('tmp_img');
@@ -132,7 +178,7 @@ for joint=1:6
        setGlobalCount(1);
     elseif joint==2 %어깨중심-가랑이
         %x0=[getGlobalSpinShoulderBaseX, getGlobalSpinShoulderBaseY, -10, 5];
-        x0=[-10, -10, -5, 10, 0];
+        x0=[-10, -10, -10, 10, 0];
         setGlobalCount(2);
     elseif joint==3 %어깨중심-왼쪽손
         x0 = [getGlobalSpinShoulderBaseX, getGlobalSpinShoulderBaseY, getGlobalSpinShoulderBaseX-30, getGlobalSpinShoulderBaseY-3, 0];
