@@ -10,7 +10,7 @@ function o = otest
 clear all;
 dct_driven=1;
 
-skeletonim = imread('person_data/person_skeleton6.jpg'); 
+skeletonim = imread('person_data/person_skeleton.jpg'); 
 %skeletonim = imread('md2.jpg');
 %skeletonimage=double(rgb2gray(skeletonim));
 skeletonimage=double(skeletonim);
@@ -21,7 +21,7 @@ skeletonimage=skeletonimage./255;
 opt=zeros(imy,imx);
 
 % person 불러오기
-person = imread('person_data/person_black6.bmp');
+person = imread('person_data/person_black.bmp');
 personimage = double(person);
 personimage = personimage ./ 255;
 person_blur = imgaussfilt(personimage, 8);
@@ -85,6 +85,15 @@ for yy=1:imy
         end
     end
 end
+
+% for yy=1:imy
+%     for xx=1:imx
+%         if person_blur(yy, xx) < 0.01
+%             person_blur(yy, xx) = 0.01;
+%         end
+%     end
+% end
+
 %skel_max=person_blur(skel_maxY, skel_maxX);
 
 %for문을 이용한 smoothing filter 만들기----------------------------------
@@ -126,7 +135,6 @@ end
 %for문을 이용한 평균필터
 % H = fspecial('average',10);
 % person_blur = imfilter(person_blur,H,'replicate');
-max_masksize=13;
 
 for b=1:imx
     for a=1:imy

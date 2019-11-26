@@ -5,7 +5,7 @@ function o = otest
 clear all;
 dct_driven=1;
 
-skeletonim = imread('person_data/person_skeleton9.jpg'); 
+skeletonim = imread('person_data/person_skeleton6.jpg'); 
 %skeletonim = imread('md2.jpg');
 %skeletonimage=double(rgb2gray(skeletonim));
 skeletonimage=double(skeletonim);
@@ -16,7 +16,7 @@ skeletonimage=skeletonimage./255;
 opt=zeros(imy,imx);
 
 % person ºÒ·¯¿À±â
-person = imread('person_data/person_black9.bmp');
+person = imread('person_data/person_black6.bmp');
 personimage = double(person);
 personimage = personimage ./ 255;
 person_blur = imgaussfilt(personimage, 8);
@@ -88,6 +88,14 @@ for yy=1:imy
     end
 end
 
+% for yy=1:imy
+%     for xx=1:imx
+%         if person_blur(yy, xx) < 0.01
+%             person_blur(yy, xx) = 0.01;
+%         end
+%     end
+% end
+
 %for¹®À» ÀÌ¿ëÇÑ smoothing filter ¸¸µé±â----------------------------------
 % sigma=1.0;
 % s=2.0 * sigma * sigma;
@@ -128,6 +136,7 @@ end
 %for¹®À» ÀÌ¿ëÇÑ Æò±ÕÇÊÅÍ
 % H = fspecial('average',10);
 % person_blur = imfilter(person_blur,H,'replicate');
+
 
 for b=1:imx
     for a=1:imy
@@ -174,45 +183,66 @@ for joint=1:10
        %x0 = [0, -30, 0, -10, 0, 10, -15, -10, 15, -10, -30, -10, 30, -10, -5, 15, 5, 15, -15, 25, 15, 25];
        x0=[-10, -35, -9, -25, 0];
        %x0 = [10, 10, 12, 20, 0];
+       lb=[];
+       ub=[];
        setGlobalCount(1);
     elseif joint==2 %¾î±úÁß½É-°¡¶ûÀÌ
         %x0=[getGlobalSpinShoulderBaseX, getGlobalSpinShoulderBaseY, -10, 5];
         x0=[-10, -10, -5, 10, 0];
         %x0=[-20, -10, -15, 10, 0];
+        lb=[];
+        ub=[];
         setGlobalCount(2);
     elseif joint==3 %¾î±úÁß½É-¿ÞÂÊÆÈ²ÞÄ¡
         x0 = [getGlobalSpinShoulderBaseX, getGlobalSpinShoulderBaseY, getGlobalSpinShoulderBaseX-15, getGlobalSpinShoulderBaseY+1, 0.3];
         %x0 = [-10, -15, -20, -13, 0];
+        lb=[getGlobalSpinShoulderBaseX-15, inf, inf, inf, inf];
+        ub=[inf, inf, getGlobalSpinShoulderBaseX, inf, inf];
         setGlobalCount(3);
     elseif joint==4 %¾î±úÁß½É-¿À¸¥ÂÊÆÈ²ÞÄ¡
         x0 = [getGlobalSpinShoulderBaseX, getGlobalSpinShoulderBaseY, getGlobalSpinShoulderBaseX+15, getGlobalSpinShoulderBaseY+1, 0.3];
         %x0 = [0, -15, 20, -13, 0];
+        lb=[inf, inf, getGlobalSpinShoulderBaseX, inf, inf];
+        ub=[getGlobalSpinShoulderBaseX+15, inf, inf, inf, inf];
         setGlobalCount(4);
     elseif joint==5 %°¡¶ûÀÌ-¿ÞÂÊ¹«¸­
         x0 = [getGlobalSpinBaseX, getGlobalSpinBaseY, getGlobalSpinBaseX-5, getGlobalSpinBaseY+15, 0];
         %x0 = [-10, 10, -12, 20];
+        lb=[];
+        ub=[];
         setGlobalCount(5);
     elseif joint==6 %°¡¶ûÀÌ-¿À¸¥ÂÊ¹«¸­
         x0 = [getGlobalSpinBaseX, getGlobalSpinBaseY, getGlobalSpinBaseX+5, getGlobalSpinBaseY+15, 0];
         %x0 = [10, 10, 12, 20];
+        lb=[];
+        ub=[];
         setGlobalCount(6);
     elseif joint==7 %¿ÞÂÊÆÈ²ÞÄ¡-¿ÞÂÊ¼Õ
         x0 = [getGlobalLeftElbowX, getGlobalLeftElbowY, getGlobalLeftElbowX-15, getGlobalLeftElbowY+1, 0.3];
+        lb=[];
+        ub=[];
         setGlobalCount(7);
     elseif joint==8 %¿À¸¥ÂÊÆÈ²ÞÄ¡-¿À¸¥ÂÊ¼Õ
         x0 = [getGlobalRightElbowX, getGlobalRightElbowY, getGlobalRightElbowX+15, getGlobalRightElbowY+1, 0.3];
+        lb=[];
+        ub=[];
         setGlobalCount(8);
     elseif joint==9 %¿ÞÂÊ¹«¸­-¿ÞÂÊ¹ß
         x0 = [getGlobalLeftKneeX, getGlobalLeftKneeY, getGlobalLeftKneeX-5, getGlobalLeftKneeY+15, 0];
+        lb=[];
+        ub=[];
         setGlobalCount(9);
     elseif joint==10 %¿À¸¥ÂÊ¹«¸­-¿À¸¥ÂÊ¹ß
         x0 = [getGlobalRightKneeX, getGlobalRightKneeY, getGlobalRightKneeX+5, getGlobalRightKneeY+15, 0];
+        lb=[];
+        ub=[];
         setGlobalCount(10);
    end
    
 options = optimset('FunValCheck','on');
 %[x,resnorm] = lsqnonlin(@myfun_yunmin,x0,lb,ub,options)
-[x,resnorm] = fminsearch(@myfun_yunmin_rotation,x0, options)
+%[x,resnorm] = fminsearch(@myfun_yunmin_rotation,x0, options)
+[x,resnorm] = fminsearchbnd(@myfun_yunmin_rotation,x0, lb, ub, options)
    
 if joint==1
     
@@ -464,316 +494,6 @@ r = LeftFoot(2);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % modeling
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function F = myfun_yunmin(x)
-rname  = sprintf('tmp_img');
-load (rname, 'im0');
-person_blur=im0;
-%subplot(2,3,6); imagesc(skeletonimage);colormap('gray');drawnow;
-%skeletonim = imread('face.png');
-%skeletonimage=double(rgb2gray(skeletonim));
-[imy,imx]=size(person_blur);
-opt=zeros(imy,imx);
-
-x1=round(x(1));
-y1=round(x(2));
-x2=round(x(3));
-y2=round(x(4));
-
-
-sum_score=0;
-sum_count=0;
-half_imy=(imy-1)/2;
-half_imx=(imx-1)/2;
-    
-for a=1:getGlobalCount
-
-    if getGlobalCount==2
-        if round(x(2)) < round(x(4))
-            distanceX=round(x(1))-getGlobalSpinShoulderBaseX;
-            distanceY=round(x(2))-getGlobalSpinShoulderBaseY;
-        else
-            distanceX=round(x(3))-getGlobalSpinShoulderBaseX;
-            distanceY=round(x(4))-getGlobalSpinShoulderBaseY;
-        end
-    elseif getGlobalCount==3
-        if round(x(1)) < round(x(3))
-            distanceX=round(x(3))-getGlobalSpinShoulderBaseX;
-            distanceY=round(x(4))-getGlobalSpinShoulderBaseY;
-        else
-            distanceX=round(x(1))-getGlobalSpinShoulderBaseX;
-            distanceY=round(x(2))-getGlobalSpinShoulderBaseY;
-        end
-         
-    elseif getGlobalCount==4
-        if round(x(1)) < round(x(3))
-            distanceX=round(x(1))-getGlobalSpinShoulderBaseX;
-            distanceY=round(x(2))-getGlobalSpinShoulderBaseY;
-        else
-            distanceX=round(x(3))-getGlobalSpinShoulderBaseX;
-            distanceY=round(x(4))-getGlobalSpinShoulderBaseY;
-        end
-    elseif getGlobalCount==5
-        if round(x(2)) < round(x(4))
-            distanceX=round(x(1))-getGlobalSpinBaseX;
-            distanceY=round(x(2))-getGlobalSpinBaseY;
-        else
-            distanceX=round(x(3))-getGlobalSpinBaseX;
-            distanceY=round(x(4))-getGlobalSpinBaseY;
-        end
-    elseif getGlobalCount==6
-        if round(x(2)) < round(x(4))
-            distanceX=round(x(1))-getGlobalSpinBaseX;
-            distanceY=round(x(2))-getGlobalSpinBaseY;
-        else
-            distanceX=round(x(3))-getGlobalSpinBaseX;
-            distanceY=round(x(4))-getGlobalSpinBaseY;
-        end
-    elseif getGlobalCount==7
-        if round(x(1)) < round(x(3))
-            distanceX=round(x(3))-getGlobalLeftElbowX;
-            distanceY=round(x(4))-getGlobalLeftElbowY;
-        else
-            distanceX=round(x(1))-getGlobalLeftElbowX;
-            distanceY=round(x(2))-getGlobalLeftElbowY;
-        end
-    elseif getGlobalCount==8
-        if round(x(1)) < round(x(3))
-            distanceX=round(x(1))-getGlobalRightElbowX;
-            distanceY=round(x(2))-getGlobalRightElbowY;
-        else
-            distanceX=round(x(3))-getGlobalRightElbowX;
-            distanceY=round(x(4))-getGlobalRightElbowY;
-        end
-    elseif getGlobalCount==9
-        if round(x(2)) < round(x(4))
-            distanceX=round(x(1))-getGlobalLeftKneeX;
-            distanceY=round(x(2))-getGlobalLeftKneeY;
-        else
-            distanceX=round(x(3))-getGlobalLeftKneeX;
-            distanceY=round(x(4))-getGlobalLeftKneeY;
-        end
-        
-    elseif getGlobalCount==10
-        if round(x(2)) < round(x(4))
-            distanceX=round(x(1))-getGlobalRightKneeX;
-            distanceY=round(x(2))-getGlobalRightKneeY;
-        else
-            distanceX=round(x(3))-getGlobalRightKneeX;
-            distanceY=round(x(4))-getGlobalRightKneeY;
-        end
-    end
-
-    if a==2
-            x1 = round(getGlobalHeadX+distanceX);
-            y1 = round(getGlobalHeadY+distanceY);
-            x2 = round(getGlobalSpinShoulderBaseX+distanceX);
-            y2 = round(getGlobalSpinShoulderBaseY+distanceY);
-    elseif a==3
-            x1 = round(getGlobalSpinShoulderBaseX+distanceX);
-            y1 = round(getGlobalSpinShoulderBaseY+distanceY);
-            x2 = round(getGlobalSpinBaseX+distanceX);
-            y2 = round(getGlobalSpinBaseY+distanceY);
-    elseif a==4
-            x1 = round(getGlobalSpinShoulderBaseX+distanceX);
-            y1 = round(getGlobalSpinShoulderBaseY+distanceY);
-            x2 = round(getGlobalLeftElbowX+distanceX);
-            y2 = round(getGlobalLeftElbowY+distanceY);
-    elseif a==5
-            x1 = round(getGlobalSpinShoulderBaseX+distanceX);
-            y1 = round(getGlobalSpinShoulderBaseY+distanceY);
-            x2 = round(getGlobalRightElbowX+distanceX);
-            y2 = round(getGlobalRightElbowY+distanceY);
-    elseif a==6
-            x1 = round(getGlobalSpinBaseX+distanceX);
-            y1 = round(getGlobalSpinBaseY+distanceY);
-            x2 = round(getGlobalLeftKneeX+distanceX);
-            y2 = round(getGlobalLeftKneeY+distanceY);
-    elseif a==7
-            x1 = round(getGlobalSpinBaseX+distanceX);
-            y1 = round(getGlobalSpinBaseY+distanceY);
-            x2 = round(getGlobalRightKneeX+distanceX);
-            y2 = round(getGlobalRightKneeY+distanceY);
-    elseif a==8
-            x1 = round(getGlobalLeftElbowX+distanceX);
-            y1 = round(getGlobalLeftElbowY+distanceY);
-            x2 = round(getGlobalLeftHandX+distanceX);
-            y2 = round(getGlobalLeftHandY+distanceY);
-    elseif a==9
-            x1 = round(getGlobalRightElbowX+distanceX);
-            y1 = round(getGlobalRightElbowY+distanceY);
-            x2 = round(getGlobalRightHandX+distanceX);
-            y2 = round(getGlobalRightHandY+distanceY);
-    elseif a==10
-            x1 = round(getGlobalLeftKneeX+distanceX);
-            y1 = round(getGlobalLeftKneeY+distanceY);
-            x2 = round(getGlobalLeftFootX+distanceX);
-            y2 = round(getGlobalLeftFootY+distanceY);
-    end
-    
-    if x1 < 1-half_imx
-        x1=1-half_imx;
-    elseif x1 > imx-half_imx
-        x1=imx-half_imx;
-    end
-    
-    if y1 < 1-half_imy
-        y1=1-half_imy;
-    elseif y1 > imy-half_imy
-        y1=imy-half_imy;
-    end
-    
-    if x2 < 1-half_imx
-        x2=1-half_imx;
-    elseif x2 > imx-half_imx
-        x2=imx-half_imx;
-    end
-    
-    if y2 < 1-half_imy
-        y2=1-half_imy;
-    elseif y2 > imy-half_imy
-        y2=imy-half_imy;
-    end
-    
-    if x1==x2
-        for i=min(y1,y2):max(y1,y2)
-            sum_score=sum_score+person_blur(half_imy+i,half_imx+x1);
-            sum_count=sum_count+1;
-            opt(half_imy+i,half_imx+x1)=1;
-        end
-    else
-        gradient=(y2-y1)/(x2-x1);
-        if gradient > 0
-            if y2 > y1
-                    for j=x1:x2
-                        y=gradient*(j-x1)+y1;
-                        sum_score=sum_score+person_blur(half_imy+round(y),half_imx+j);
-                        sum_count=sum_count+1;
-                        opt(half_imy+round(y),half_imx+j)=1;
-                        
-                        if j>x1
-                            if abs(pastY-round(y))>sqrt(2)
-                               for k=pastY:round(y)
-                                   sum_score=sum_score+person_blur(half_imy+k, half_imx+j);
-                                   sum_count=sum_count+1;
-                                   opt(half_imy+k, half_imx+j)=1;
-                               end
-                            end
-                        end
-                        pastY=round(y);
-                    end
-            else
-                    for j=x2:x1
-                        y=gradient*(j-x1)+y1;
-                        sum_score=sum_score+person_blur(half_imy+round(y),half_imx+j);
-                        sum_count=sum_count+1;
-                        opt(half_imy+round(y),half_imx+j)=1; 
-                        
-                        if j>x2
-                            if abs(pastY-round(y))>sqrt(2)
-                               for k=pastY:round(y)
-                                   sum_score=sum_score+person_blur(half_imy+k, half_imx+j);
-                                   sum_count=sum_count+1;
-                                   opt(half_imy+k, half_imx+j)=1;
-                               end
-                            end
-                        end
-                        pastY=round(y);
-                    end
-            end
-        else
-            if y2 > y1
-                    for j=x2:x1
-                        y=gradient*(j-x1)+y1;
-                        sum_score=sum_score+person_blur(half_imy+round(y),half_imx+j);
-                        sum_count=sum_count+1;
-                        opt(half_imy+round(y),half_imx+j)=1;
-                        
-                        if j>x2
-                            if abs(pastY-round(y))>sqrt(2)
-                               for k=round(y):pastY
-                                   sum_score=sum_score+person_blur(half_imy+k, half_imx+j);
-                                   sum_count=sum_count+1;
-                                   opt(half_imy+k, half_imx+j)=1;
-                               end
-                            end
-                        end
-                        pastY=round(y);
-                    end
-            elseif y1 > y2
-                    for j=x1:x2
-                        y=gradient*(j-x1)+y1;
-                        sum_score=sum_score+person_blur(half_imy+round(y),half_imx+j);
-                        sum_count=sum_count+1;
-                        opt(half_imy+round(y),half_imx+j)=1;
-                        
-                        if j>x1
-                            if abs(pastY-round(y))>sqrt(2)
-                               for k=round(y):pastY
-                                   sum_score=sum_score+person_blur(half_imy+k, half_imx+j);
-                                   sum_count=sum_count+1;
-                                   opt(half_imy+k, half_imx+j)=1;
-                               end
-                            end
-                        end
-                        pastY=round(y);
-                    end
-            else
-                if x1 > x2
-                    for j=x2:x1
-                        y=gradient*(j-x1)+y1;
-                        sum_score=sum_score+person_blur(half_imy+round(y),half_imx+j);
-                        sum_count=sum_count+1;
-                        opt(half_imy+round(y),half_imx+j)=1;
-                    end
-                else
-                    for j=x1:x2
-                        y=gradient*(j-x1)+y1;
-                        sum_score=sum_score+person_blur(half_imy+round(y),half_imx+j);
-                        sum_count=sum_count+1;
-                        opt(half_imy+round(y),half_imx+j)=1;
-                    end
-                end
-            end
-        end
-    end
-    
-    if a==2
-        setGlobalHead(x1, y1);
-        setGlobalSpinShoulderBase(x2, y2);
-    elseif a==3
-        setGlobalSpinBase(x2, y2);
-    elseif a==4
-        setGlobalLeftElbow(x2, y2);
-    elseif a==5
-        setGlobalRightElbow(x2, y2);
-    elseif a==6
-        setGlobalLeftKnee(x2, y2);
-    elseif a==7
-        setGlobalRightKnee(x2, y2);
-    elseif a==8
-        setGlobalLeftHand(x2, y2);
-    elseif a==9
-        setGlobalRightHand(x2, y2);
-    elseif a==10
-        setGlobalLeftFoot(x2, y2);
-    end
-end
-
-
-aver=sum_score / sum_count;
-
-% 
-subplot(2,2,2); imagesc(opt);colormap('gray');drawnow;
-%subplot(2,3,5); imagesc(G2);colormap('gray');drawnow;
-
-optpath  = sprintf('opt_img');
-im_opt=opt;
-save(optpath,'im_opt');
-
-%F = var(var((personimage-G2)));
-%F = ((abs(person_blur-opt)));
-F=aver;
-
 %rotation Ãß°¡------------------------------------------------------
 function F = myfun_yunmin_rotation(x)
 rname  = sprintf('tmp_img');
