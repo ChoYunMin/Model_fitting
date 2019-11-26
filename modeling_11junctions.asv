@@ -5,7 +5,7 @@ function o = otest
 clear all;
 dct_driven=1;
 
-skeletonim = imread('person_data/person_skeleton9.jpg'); 
+skeletonim = imread('person_data/person_skeleton4.jpg'); 
 %skeletonim = imread('md2.jpg');
 %skeletonimage=double(rgb2gray(skeletonim));
 skeletonimage=double(skeletonim);
@@ -16,7 +16,7 @@ skeletonimage=skeletonimage./255;
 opt=zeros(imy,imx);
 
 % person ºÒ·¯¿À±â
-person = imread('person_data/person_black9.bmp');
+person = imread('person_data/person_black4.bmp');
 personimage = double(person);
 personimage = personimage ./ 255;
 person_blur = imgaussfilt(personimage, 8);
@@ -169,11 +169,14 @@ save(wpath,'im0');
 %person_blur=(person_blur-128)/128;
 
 %°üÀý Å½»ö - À±¹Î ¸¶À½´ë·Î~
-for joint=1:10
+for joint=1:1
    if joint==1 %¸Ó¸®-¾î±úÁß½É
        %x0 = [0, -30, 0, -10, 0, 10, -15, -10, 15, -10, -30, -10, 30, -10, -5, 15, 5, 15, -15, 25, 15, 25];
-       x0=[-10, -35, -9, -25, 0];
-       %x0 = [10, 10, 12, 20, 0];
+       %x0 = [0, 10, 5, 15, 15, 25, -5, 15, -15, 25];
+       x0=[-10, -35, -8, -20, 0];
+       %x0=[-10, -15, -20, -13, 0];
+       ub=[];
+       lb=[];
        setGlobalCount(1);
     elseif joint==2 %¾î±úÁß½É-°¡¶ûÀÌ
         %x0=[getGlobalSpinShoulderBaseX, getGlobalSpinShoulderBaseY, -10, 5];
