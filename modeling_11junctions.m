@@ -5,10 +5,21 @@ function o = otest
 clear all;
 dct_driven=1;
 
+skeletonim = imread('person_data/person_skeleton6.jpg'); 
+%skeletonim = imread('md2.jpg');
+%skeletonimage=double(rgb2gray(skeletonim));
+skeletonimage=double(skeletonim);
+skeletonimage=255-skeletonimage;
+skeletonimage=skeletonimage./255;
 
-[imy,imx]=size(firstimage);
+[imy,imx]=size(skeletonimage);
 opt=zeros(imy,imx);
 
+% person 불러오기
+person = imread('person_data/person_black6.bmp');
+personimage = double(person);
+personimage = personimage ./ 255;
+person_blur = imgaussfilt(personimage, 8);
 
 %minimum=min(min(person_blur));
 
@@ -89,7 +100,7 @@ end
 % sigma=1.0;
 % s=2.0 * sigma * sigma;
 % sum_filter=0;
-% masksize=3;
+% masksize=7;
 % 
 % for a=masksize*(-1):masksize
 %     for b=masksize*(-1):masksize
@@ -108,20 +119,19 @@ end
 % for a=masksize+1:imy-masksize
 %     for b=masksize+1:imx-masksize
 %         sum_gaussian = 0;
-%         if skeleton_blur(a, b) > 0.01
+%         if person_blur(a, b) ~= 0
 %             for c=masksize*(-1):masksize
 %                 for d=masksize*(-1):masksize
-%                     sum_gaussian = sum_gaussian + skeleton_blur(a+c, b+d) * Gkernel(c+masksize+1, d+masksize+1);
+%                     sum_gaussian = sum_gaussian + (person_blur(a+c, b+d) * Gkernel(c+masksize+1, d+masksize+1));
 %                 end
 %             end
 %             
-%             skeleton_blur(a, b) = sum_gaussian;
+%             person_blur(a, b) = sum_gaussian;
 %         end
 %         
 %     end
 % end
-%-------------------------------------------------------------------------
-
+%-----------------------------------------------------------------------
 
 %for문을 이용한 평균필터
 % H = fspecial('average',10);
@@ -153,14 +163,11 @@ for b=1:imx
                 end
             end
             
-            skeleton_blur(a, b) = sum_gaussian;
-            
             person_blur(a, b) = sum_average / (masksize*masksize);
         end
         
     end
 end
-%-------------------------------------------------------------------------
 
 %-----------------------------------------------------------------------
 
