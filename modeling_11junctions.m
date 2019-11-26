@@ -5,7 +5,7 @@ function o = otest
 clear all;
 dct_driven=1;
 
-firstim = imread('person_data/person_skeleton.jpg'); 
+firstim = imread('person_data/person_skeleton2.jpg'); 
 %firstim = imread('md2.jpg');
 %firstimage=double(rgb2gray(firstim));
 firstimage=double(firstim);
@@ -16,7 +16,7 @@ firstimage=firstimage./255;
 opt=zeros(imy,imx);
 
 % skeleton 불러오기
-skeleton = imread('person_data/person_black.bmp');
+skeleton = imread('person_data/person_black2.bmp');
 skeletonimage = double(skeleton);
 skeletonimage = skeletonimage ./ 255;
 skeleton_blur = imgaussfilt(skeletonimage, 8);
@@ -84,41 +84,63 @@ for yy=1:imy
     end
 end
 
-%for문을 이용한 smoothing filter 만들기
-sigma=1.0;
-s=2.0 * sigma * sigma;
-sum_filter=0;
-masksize=15;
+%for문을 이용한 smoothing filter 만들기----------------------------------
+% sigma=1.0;
+% s=2.0 * sigma * sigma;
+% sum_filter=0;
+% masksize=3;
+% 
+% for a=masksize*(-1):masksize
+%     for b=masksize*(-1):masksize
+%         r=sqrt(a*a + b*b);
+%         Gkernel(a+masksize+1, b+masksize+1)=(exp(-(r*r)/s))/(3.14 * s);
+%         sum_filter = sum_filter + Gkernel(a+masksize+1, b+masksize+1);
+%     end
+% end
+% 
+% for a=1:masksize*2+1
+%     for b=1:masksize*2+1
+%         Gkernel(a,b) = Gkernel(a, b) / sum_filter;
+%     end
+% end
+% 
+% for a=masksize+1:imy-masksize
+%     for b=masksize+1:imx-masksize
+%         sum_gaussian = 0;
+%         if skeleton_blur(a, b) > 0.01
+%             for c=masksize*(-1):masksize
+%                 for d=masksize*(-1):masksize
+%                     sum_gaussian = sum_gaussian + skeleton_blur(a+c, b+d) * Gkernel(c+masksize+1, d+masksize+1);
+%                 end
+%             end
+%             
+%             skeleton_blur(a, b) = sum_gaussian;
+%         end
+%         
+%     end
+% end
+%-------------------------------------------------------------------------
 
-for a=masksize*(-1):masksize
-    for b=masksize*(-1):masksize
-        r=sqrt(a*a + b*b);
-        Gkernel(a+masksize+1, b+masksize+1)=(exp(-(r*r)/s))/(3.14 * s);
-        sum_filter = sum_filter + Gkernel(a+masksize+1, b+masksize+1);
-    end
-end
+%for문을 이용한 가우시안 필터 만들기----------------------------------
+filter = [1 4 7 4 1
+          4 16 26 16 4
+          7 26 41 26 7
+          4 16 26 16 4
+          1 4 7 4 1];
+filter = filter./273;
 
-for a=1:masksize*2+1
-    for b=1:masksize*2+1
-        Gkernel(a,b) = Gkernel(a, b) / sum_filter;
-    end
-end
-
-for a=masksize+1:imy-masksize
-    for b=masksize+1:imx-masksize
-        sum_gaussian = 0;
-        if skeleton_blur(a, b) > 0.01
-            for c=masksize*(-1):masksize
-                for d=masksize*(-1):masksize
-                    sum_gaussian = sum_gaussian + skeleton_blur(a+c, b+d) * Gkernel(c+masksize+1, d+masksize+1);
-                end
+for a=3:imy-2
+    for b=3:imx-2
+        
+        for my=a-2:a+2
+            for mx=b-2:b+2
+                %%%%가우시안 마스크랑 픽셀 값 다 곱하고 더해서 나누기 25
             end
-            
-            skeleton_blur(a, b) = sum_gaussian;
         end
         
     end
 end
+%-------------------------------------------------------------------------
 
 subplot(2,2,1); imagesc(skeleton_blur);colormap('gray');drawnow; %이미지 그리기
 wpath  = sprintf('tmp_img');
