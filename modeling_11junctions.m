@@ -772,9 +772,7 @@ end
 
 
 for a=1:getGlobalCount
-    
-    
-    
+
     if a==2
             x1 = round(getGlobalHeadX+distanceX);
             y1 = round(getGlobalHeadY+distanceY);
