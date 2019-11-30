@@ -212,7 +212,7 @@ for joint=1:6
     elseif joint==6 %가랑이-오른쪽발
         x0 = [getGlobalSpinBaseX, getGlobalSpinBaseY, getGlobalSpinBaseX+15, getGlobalSpinBaseY+25, 0];
         %x0 = [10, 10, 12, 20];
-        lb=[getGlobalSpinBaseX-20, getGlobalSpinBaseY-20, getGlobalSpinBaseX+2, getGlobalSpinBaseY+5, pi*(-1)];
+        lb=[getGlobalSpinBaseX-20, getGlobalSpinBaseY-20, getGlobalSpinBaseX+5, getGlobalSpinBaseY+5, pi*(-1)];
         ub=[getGlobalSpinBaseX+20, getGlobalSpinBaseY+20, 45, 45, pi];
         setGlobalCount(6);
    end
