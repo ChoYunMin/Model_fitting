@@ -5,7 +5,7 @@ function o = otest
 clear all;
 dct_driven=1;
 
-skeletonim = imread('person_data/person_skeleton.jpg'); 
+skeletonim = imread('person_data/person_skeleton8.jpg'); 
 %skeletonim = imread('md2.jpg');
 %skeletonimage=double(rgb2gray(skeletonim));
 skeletonimage=double(skeletonim);
@@ -16,7 +16,7 @@ skeletonimage=skeletonimage./255;
 opt=zeros(imy,imx);
 
 % person ºÒ·¯¿À±â
-person = imread('person_data/person_black.bmp');
+person = imread('person_data/person_black8.bmp');
 personimage = double(person);
 personimage = personimage ./ 255;
 person_blur = imgaussfilt(personimage, 8);
@@ -181,41 +181,41 @@ save(wpath,'im0');
 for joint=1:10
    if joint==1 %¸Ó¸®-¾î±úÁß½É
        %x0 = [0, -30, 0, -10, 0, 10, -15, -10, 15, -10, -30, -10, 30, -10, -5, 15, 5, 15, -15, 25, 15, 25];
-       x0=[10, -35, -10, -25, 0];
+       x0=[5, -35, -5, -25, 0];
        %x0 = [10, 10, 12, 20, 0];
-       lb=[-5, -44 -25, -44, pi*(-1)];
-       ub=[25, -20, 5, -10, pi];
+       lb=[-10, -44 -20, -44, pi*(-1)];
+       ub=[20, -20, 10, -10, pi];
        setGlobalCount(1);
     elseif joint==2 %¾î±úÁß½É-°¡¶ûÀÌ
         %x0=[getGlobalSpinShoulderBaseX, getGlobalSpinShoulderBaseY, -10, 5];
-        x0=[-5, -10, 5, 10, 0];
+        x0=[-5, -15, 5, 10, 0];
         %x0=[-20, -10, -15, 10, 0];
-        lb=[-25, -30, -15, -10, pi*(-1)];
-        ub=[15, 10, 25, 30, pi];
+        lb=[-25, -35, -15, -5, pi*(-1)/2];
+        ub=[15, 5, 25, 35, pi/2];
         setGlobalCount(2);
     elseif joint==3 %¾î±úÁß½É-¿ÞÂÊÆÈ²ÞÄ¡
         x0 = [getGlobalSpinShoulderBaseX, getGlobalSpinShoulderBaseY, getGlobalSpinShoulderBaseX-20, getGlobalSpinShoulderBaseY+1, 0];
         %x0 = [-10, -15, -20, -13, 0];
-        lb=[getGlobalSpinShoulderBaseX-20, getGlobalSpinShoulderBaseY-20, getGlobalSpinShoulderBaseX-35, getGlobalSpinShoulderBaseY-19, pi*(-1)];
-        ub=[getGlobalSpinShoulderBaseX+20, getGlobalSpinShoulderBaseY+20, getGlobalSpinShoulderBaseX, getGlobalSpinShoulderBaseY+21, pi];
+        lb=[getGlobalSpinShoulderBaseX-20, getGlobalSpinShoulderBaseY-20, getGlobalSpinShoulderBaseX-35, getGlobalSpinShoulderBaseY-19, pi*(-1)/2];
+        ub=[getGlobalSpinShoulderBaseX+20, getGlobalSpinShoulderBaseY+20, getGlobalSpinShoulderBaseX, getGlobalSpinShoulderBaseY+21, pi/2];
         setGlobalCount(3);
     elseif joint==4 %¾î±úÁß½É-¿À¸¥ÂÊÆÈ²ÞÄ¡
         x0 = [getGlobalSpinShoulderBaseX, getGlobalSpinShoulderBaseY, getGlobalSpinShoulderBaseX+20, getGlobalSpinShoulderBaseY+1, 0];
         %x0 = [0, -15, 20, -13, 0];
-        lb=[getGlobalSpinShoulderBaseX-20, getGlobalSpinShoulderBaseY-20, getGlobalSpinShoulderBaseX, getGlobalSpinShoulderBaseY-19, pi*(-1)];
-        ub=[getGlobalSpinShoulderBaseX+20, getGlobalSpinShoulderBaseY+20, getGlobalSpinShoulderBaseX+35, getGlobalSpinShoulderBaseY+21, pi];
+        lb=[getGlobalSpinShoulderBaseX-20, getGlobalSpinShoulderBaseY-20, getGlobalSpinShoulderBaseX, getGlobalSpinShoulderBaseY-19, pi*(-1)/3];
+        ub=[getGlobalSpinShoulderBaseX+20, getGlobalSpinShoulderBaseY+20, getGlobalSpinShoulderBaseX+35, getGlobalSpinShoulderBaseY+21, pi/3];
         setGlobalCount(4);
     elseif joint==5 %°¡¶ûÀÌ-¿ÞÂÊ¹«¸­
         x0 = [getGlobalSpinBaseX, getGlobalSpinBaseY, getGlobalSpinBaseX-10, getGlobalSpinBaseY+15, 0];
         %x0 = [-10, 10, -12, 20];
-        lb=[getGlobalSpinBaseX-20, getGlobalSpinBaseY-20, getGlobalSpinBaseX-30, getGlobalSpinBaseY, pi*(-1)];
-        ub=[getGlobalSpinBaseX+20, getGlobalSpinBaseY+20, getGlobalSpinBaseX-2, getGlobalSpinBaseY+35, pi];
+        lb=[getGlobalSpinBaseX-20, getGlobalSpinBaseY-20, getGlobalSpinBaseX-30, getGlobalSpinBaseY, pi*(-1)/2];
+        ub=[getGlobalSpinBaseX+20, getGlobalSpinBaseY+20, getGlobalSpinBaseX-2, getGlobalSpinBaseY+35, pi/2];
         setGlobalCount(5);
     elseif joint==6 %°¡¶ûÀÌ-¿À¸¥ÂÊ¹«¸­
         x0 = [getGlobalSpinBaseX, getGlobalSpinBaseY, getGlobalSpinBaseX+10, getGlobalSpinBaseY+15, 0];
         %x0 = [10, 10, 12, 20];
-        lb=[getGlobalSpinBaseX-20, getGlobalSpinBaseY-20, getGlobalSpinBaseX+2, getGlobalSpinBaseY, pi*(-1)];
-        ub=[getGlobalSpinBaseX+20, getGlobalSpinBaseY+20, getGlobalSpinBaseX+30, getGlobalSpinBaseY+35, pi];
+        lb=[getGlobalSpinBaseX-20, getGlobalSpinBaseY-20, getGlobalSpinBaseX+2, getGlobalSpinBaseY, pi*(-1)/3];
+        ub=[getGlobalSpinBaseX+20, getGlobalSpinBaseY+20, getGlobalSpinBaseX+30, getGlobalSpinBaseY+35, pi/3];
         setGlobalCount(6);
     elseif joint==7 %¿ÞÂÊÆÈ²ÞÄ¡-¿ÞÂÊ¼Õ
         x0 = [getGlobalLeftElbowX, getGlobalLeftElbowY, getGlobalLeftElbowX-10, getGlobalLeftElbowY+1, 0];
@@ -260,11 +260,13 @@ if joint==1
     end
     
 elseif joint==2
-    
+    %%%%%%%%%%%%% ¸Ó¸®°¡ ÀÚ²Ù ±â¿ï¾îÁö±â¿¡ ¸öÅë°ú xÃà ÀÏÄ¡½ÃÅ´!
     if x(2) < x(4)
+        setGlobalHead(round(x(1)), getGlobalHeadY);
         setGlobalSpinBase(round(x(3)), round(x(4)));
     else
-        setGlobalSpinBase(round(x(3)), round(x(4)));
+        setGlobalHead(round(x(3)), getGlobalHeadY);
+        setGlobalSpinBase(round(x(1)), round(x(2)));
     end
     
 elseif joint==3

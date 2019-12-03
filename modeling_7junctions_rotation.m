@@ -10,7 +10,7 @@ function o = otest
 clear all;
 dct_driven=1;
 
-skeletonim = imread('person_data/person_skeleton7.jpg'); 
+skeletonim = imread('person_data/person_skeleton8.jpg'); 
 %skeletonim = imread('md2.jpg');
 %skeletonimage=double(rgb2gray(skeletonim));
 skeletonimage=double(skeletonim);
@@ -21,7 +21,7 @@ skeletonimage=skeletonimage./255;
 opt=zeros(imy,imx);
 
 % person 불러오기
-person = imread('person_data/person_black7.bmp');
+person = imread('person_data/person_black8.bmp');
 personimage = double(person);
 personimage = personimage ./ 255;
 person_blur = imgaussfilt(personimage, 8);
@@ -238,10 +238,12 @@ if joint==1
     end
     
 elseif joint==2
-    
+    %%%%%%%%%%%%% 머리가 자꾸 기울어지기에 몸통과 x축 일치시킴!
     if x(2) < x(4)
+        setGlobalHead(round(x(1)), getGlobalHeadY);
         setGlobalSpinBase(round(x(3)), round(x(4)));
     else
+        setGlobalHead(round(x(3)), getGlobalHeadY);
         setGlobalSpinBase(round(x(1)), round(x(2)));
     end
     
