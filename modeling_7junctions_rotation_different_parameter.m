@@ -1,16 +1,14 @@
 % CSE597C Gabor filter
 % Seungkyu Lee
 
-%테스트 - 관절 줄이기: 팔꿈치, 무릎 없애고 찾기
-%테스트 - rotation 추가
-%테스트 - 파라미터 값 변경
+%테스트 - 19.12.03 - 관절 탐색 할 수록 파라미터 추가해주기: 모든 파라미터 계속 최적화
 
 function o = otest
 
 clear all;
 dct_driven=1;
 
-skeletonim = imread('person_data/person_skeleton3.jpg'); 
+skeletonim = imread('person_data/person_skeleton4.jpg'); 
 %skeletonim = imread('md2.jpg');
 %skeletonimage=double(rgb2gray(skeletonim));
 skeletonimage=double(skeletonim);
@@ -21,83 +19,153 @@ skeletonimage=skeletonimage./255;
 opt=zeros(imy,imx);
 
 % person 불러오기
-person = imread('person_data/person_black3.bmp');
+person = imread('person_data/person_black4.bmp');
 personimage = double(person);
 personimage = personimage ./ 255;
 person_blur = imgaussfilt(personimage, 8);
-
-minimum=min(min(person_blur));
 
 for i=1:imy
     for j=1:imx
         if skeletonimage(i,j)>0.9
             skeletonimage(i,j)=1;
         else
-            skeletonimage(i,j)=minimum-0.01;
+            skeletonimage(i,j)=0;
         end
     end
 end
 
-%skeleton 두껍게 하기------------------
-% se = strel('ball',3,3);
-% skeletonimage=imerode(skeletonimage,se);
-% 
-% maximum=max(max(skeletonimage))
+%skeleton end point 높이기----------------
+% skeleton_blur = imgaussfilt(skeletonimage, 5);
+% skeletonimage = skeletonimage - skeleton_blur;
+% skeletonimage = skeletonimage + 1;
+% skel_max=0;
 % for i=1:imy
 %     for j=1:imx
-%         if skeletonimage(i,j)==maximum
+%         if skeletonimage(i,j)>=1
 %             skeletonimage(i,j)=1;
 %         else
-%             skeletonimage(i,j)=minimum-0.01;
+%             if skeletonimage(i,j) > skel_max
+%                 skel_max=skeletonimage(i,j);
+%                 skel_maxX=j; skel_maxY=i;
+%             end
 %         end
 %     end
 % end
+%---------------------------------------------
+
+%skeleton 두껍게 하기------------------
+se = strel('ball',5, 2);
+skeletonimage=imerode(skeletonimage,se);
+skeletonimage = skeletonimage + 2;
+
+maximum=max(max(skeletonimage));
+minimum=min(min(skeletonimage));
+%skel_max=0;
+for i=1:imy
+    for j=1:imx
+        if skeletonimage(i,j) >= 1
+            skeletonimage(i,j)=1;
+        else
+            if minimum == skeletonimage(i, j)
+                skeletonimage(i, j)=0;
+            end
+        end
+    end
+end
 %----------------------------------------
 
-%person_blur=person_blur.*skeletonimage;
+
+
 for yy=1:imy
     for xx=1:imx
         if skeletonimage(yy, xx) ~= 1
-            person_blur(yy, xx) = skeletonimage(yy, xx);
+            person_blur(yy, xx) =person_blur(yy, xx) * skeletonimage(yy, xx);
         end
     end
 end
 
-%for문을 이용한 smoothing filter 만들기
-sigma=1.0;
-s=2.0 * sigma * sigma;
-sum_filter=0;
-masksize=5;
+% for yy=1:imy
+%     for xx=1:imx
+%         if person_blur(yy, xx) < 0.01
+%             person_blur(yy, xx) = 0.01;
+%         end
+%     end
+% end
 
-for a=masksize*(-1):masksize
-    for b=masksize*(-1):masksize
-        r=sqrt(a*a + b*b);
-        Gkernel(a+masksize+1, b+masksize+1)=(exp(-(r*r)/s))/(3.14 * s);
-        sum_filter = sum_filter + Gkernel(a+masksize+1, b+masksize+1);
-    end
-end
+%skel_max=person_blur(skel_maxY, skel_maxX);
 
-for a=1:masksize*2+1
-    for b=1:masksize*2+1
-        Gkernel(a,b) = Gkernel(a, b) / sum_filter;
-    end
-end
+%for문을 이용한 smoothing filter 만들기----------------------------------
+% sigma=1.0;
+% s=2.0 * sigma * sigma;
+% sum_filter=0;
+% masksize=15;
+% 
+% for a=masksize*(-1):masksize
+%     for b=masksize*(-1):masksize
+%         r=sqrt(a*a + b*b);
+%         Gkernel(a+masksize+1, b+masksize+1)=(exp(-(r*r)/s))/(3.14 * s);
+%         sum_filter = sum_filter + Gkernel(a+masksize+1, b+masksize+1);
+%     end
+% end
+% 
+% for a=1:masksize*2+1
+%     for b=1:masksize*2+1
+%         Gkernel(a,b) = Gkernel(a, b) / sum_filter;
+%     end
+% end
+% 
+% for a=masksize+1:imy-masksize
+%     for b=masksize+1:imx-masksize
+%         sum_gaussian = 0;
+%         if person_blur(a, b) ~= 0
+%             for c=masksize*(-1):masksize
+%                 for d=masksize*(-1):masksize
+%                     sum_gaussian = sum_gaussian + (person_blur(a+c, b+d) * Gkernel(c+masksize+1, d+masksize+1));
+%                 end
+%             end
+%             
+%             person_blur(a, b) = sum_gaussian;
+%         end
+%         
+%     end
+% end
+%-----------------------------------------------------------------------
+%for문을 이용한 평균필터
+% H = fspecial('average',10);
+% person_blur = imfilter(person_blur,H,'replicate');
 
-for a=masksize+1:imy-masksize
-    for b=masksize+1:imx-masksize
-        sum_gaussian = 0;
-        if person_blur(a, b) ~= minimum-0.01
-            for c=masksize*(-1):masksize
-                for d=masksize*(-1):masksize
-                    sum_gaussian = sum_gaussian + person_blur(a+c, b+d) * Gkernel(c+masksize+1, d+masksize+1);
+for b=1:imx
+    for a=1:imy
+        sum_average = 0;
+        
+        if person_blur(a, b) ~= 0
+            
+            if 0 < person_blur(a, b) && person_blur(a, b) < 0.3
+                masksize=5;
+            elseif 0.3 <= person_blur(a, b) && person_blur(a, b) < 0.6
+                masksize=9;
+            elseif 0.6 <= person_blur(a, b) && person_blur(a, b) < 1
+                masksize=13;
+            end
+            
+            for c=(masksize-1)/2*(-1):(masksize-1)/2
+                for d=(masksize-1)/2*(-1):(masksize-1)/2
+                    if a+c < 1 || a+c > imy || b+d < 1 || b+d > imx
+                        sum_average = sum_average + 1;
+                    else
+                        sum_average = sum_average + person_blur(a+c, b+d);
+                    end
+                    
                 end
             end
             
-            person_blur(a, b) = sum_gaussian;
+            person_blur(a, b) = sum_average / (masksize*masksize);
         end
         
     end
 end
+
+%-----------------------------------------------------------------------
 
 subplot(2,2,1); imagesc(person_blur);colormap('gray');drawnow; %이미지 그리기
 wpath  = sprintf('tmp_img');
@@ -109,36 +177,53 @@ save(wpath,'im0');
 for joint=1:6
    if joint==1 %머리-어깨중심
        %x0 = [0, -30, 0, -10, 0, 10, -15, -10, 15, -10, -30, -10, 30, -10, -5, 15, 5, 15, -15, 25, 15, 25];
-       %x0 = [0, 10, 5, 15, 15, 25, -5, 15, -15, 25];
-       x0=[-5, -35, -5, -20, 0];
-       ub=[];
-       lb=[];
+       x0=[10, -35, -10, -25, 0];
+       %x0 = [10, 10, 12, 20, 0];
+       lb=[-5, -44 -25, -44, pi*(-1)];
+       ub=[25, -20, 5, -10, pi];
        setGlobalCount(1);
     elseif joint==2 %어깨중심-가랑이
         %x0=[getGlobalSpinShoulderBaseX, getGlobalSpinShoulderBaseY, -10, 5];
-        x0=[-10, -10, -5, 10, 0];
+        x0=[-5, -10, 5, 15, 0, getGlobalHeadX, getGlobalHeadY];
+        %x0=[-20, -10, -15, 10, 0];
+        lb=[-25, -30, -10, -15, pi*(-1), getGlobalHeadX-5, getGlobalHeadY-5];
+        ub=[15, 10, 30, 30, pi, getGlobalHeadX+5, getGlobalHeadY+5];
         setGlobalCount(2);
     elseif joint==3 %어깨중심-왼쪽손
-        x0 = [-10, -10, -35, 5, 0];
-        %x0 = [-10, -15, -20, -13];
+        x0 = [getGlobalSpinShoulderBaseX, getGlobalSpinShoulderBaseY, getGlobalSpinShoulderBaseX-30, getGlobalSpinShoulderBaseY+1, 0, getGlobalHeadX, getGlobalHeadY, getGlobalSpinBaseX, getGlobalSpinBaseY];
+        %x0 = [-10, -15, -20, -13, 0];
+        lb=[getGlobalSpinShoulderBaseX-20, getGlobalSpinShoulderBaseY-20, -44, getGlobalSpinShoulderBaseY-19, pi*(-1)/2, getGlobalHeadX-5, getGlobalHeadY-5, getGlobalSpinBaseX-5, getGlobalSpinBaseY-5];
+        ub=[getGlobalSpinShoulderBaseX+20, getGlobalSpinShoulderBaseY+20, getGlobalSpinShoulderBaseX-10, getGlobalSpinShoulderBaseY+21, pi/2, getGlobalHeadX-5, getGlobalHeadY-5, getGlobalSpinBaseX+5, getGlobalSpinBaseY+5];
         setGlobalCount(3);
     elseif joint==4 %어깨중심-오른쪽손
-        x0 = [5, -10, 35, 5, 0];
-        %x0 = [10, -15, 20, -13];
+        x0 = [getGlobalSpinShoulderBaseX, getGlobalSpinShoulderBaseY, getGlobalSpinShoulderBaseX+30, getGlobalSpinShoulderBaseY+1, 0, getGlobalHeadX, getGlobalHeadY, getGlobalSpinBaseX, getGlobalSpinBaseY, getGlobalLeftHandX, getGlobalLeftHandY];
+        %x0 = [0, -15, 20, -13, 0];
+        lb=[getGlobalSpinShoulderBaseX-20, getGlobalSpinShoulderBaseY-20, getGlobalSpinShoulderBaseX+10, getGlobalSpinShoulderBaseY-19, pi*(-1)/2, getGlobalHeadX-5, getGlobalHeadY-5, getGlobalSpinBaseX-5, getGlobalSpinBaseY-5, getGlobalLeftHandX-5, getGlobalLeftHandY-5];
+        ub=[getGlobalSpinShoulderBaseX+20, getGlobalSpinShoulderBaseY+20, 45, getGlobalSpinShoulderBaseY+21, pi/2, getGlobalHeadX-5, getGlobalHeadY-5, getGlobalSpinBaseX+5, getGlobalSpinBaseY+5, getGlobalLeftHandX+5, getGlobalLeftHandY+5];
         setGlobalCount(4);
     elseif joint==5 %가랑이-왼쪽발
-        x0 = [getGlobalSpinBaseX, getGlobalSpinBaseY, getGlobalSpinBaseX-20, getGlobalSpinBaseY+25, 0];
+        x0 = [getGlobalSpinBaseX, getGlobalSpinBaseY, getGlobalSpinBaseX-15, getGlobalSpinBaseY+25, 0, getGlobalHeadX, getGlobalHeadY, getGlobalSpinShoulderBaseX, getGlobalSpinShoulderBaseY, getGlobalLeftHandX, getGlobalLeftHandY, getGlobalRightHandX, getGlobalRightHandY];
         %x0 = [-10, 10, -12, 20];
+        lb=[getGlobalSpinBaseX-20, getGlobalSpinBaseY-20, -44, getGlobalSpinBaseY+5, pi*(-1), getGlobalHeadX-5, getGlobalHeadY-5, getGlobalSpinShoulderBaseX-5, getGlobalSpinShoulderBaseY-5, getGlobalLeftHandX-5, getGlobalLeftHandY-5, getGlobalRightHandX-5, getGlobalRightHandY-5];
+        ub=[getGlobalSpinBaseX+20, getGlobalSpinBaseY+20, getGlobalSpinBaseX-5, 45, pi, getGlobalHeadX+5, getGlobalHeadY+5, getGlobalSpinShoulderBaseX+5, getGlobalSpinShoulderBaseY+5, getGlobalLeftHandX+5, getGlobalLeftHandY+5, getGlobalRightHandX+5, getGlobalRightHandY+5];
         setGlobalCount(5);
     elseif joint==6 %가랑이-오른쪽발
-        x0 = [getGlobalSpinBaseX, getGlobalSpinBaseY, getGlobalSpinBaseX+20, getGlobalSpinBaseY+25, 0];
+        x0 = [getGlobalSpinBaseX, getGlobalSpinBaseY, getGlobalSpinBaseX+15, getGlobalSpinBaseY+25, 0, getGlobalHeadX, getGlobalHeadY, getGlobalSpinShoulderBaseX, getGlobalSpinShoulderBaseY, getGlobalLeftHandX, getGlobalLeftHandY, getGlobalRightHandX, getGlobalRightHandY, getGlobalLeftFootX, getGlobalLeftFootY];
         %x0 = [10, 10, 12, 20];
+        lb=[getGlobalSpinBaseX-20, getGlobalSpinBaseY-20, getGlobalSpinBaseX+5, getGlobalSpinBaseY+5, pi*(-1), getGlobalHeadX-5, getGlobalHeadY-5, getGlobalSpinShoulderBaseX-5, getGlobalSpinShoulderBaseY-5, getGlobalLeftHandX-5, getGlobalLeftHandY-5, getGlobalRightHandX-5, getGlobalRightHandY-5, getGlobalLeftFootX-5, getGlobalLeftFootY-5];
+        ub=[getGlobalSpinBaseX+20, getGlobalSpinBaseY+20, 45, 45, pi, getGlobalHeadX+5, getGlobalHeadY+5, getGlobalSpinShoulderBaseX+5, getGlobalSpinShoulderBaseY+5, getGlobalLeftHandX+5, getGlobalLeftHandY+5, getGlobalRightHandX+5, getGlobalRightHandY+5, getGlobalLeftFootX+5, getGlobalLeftFootY+5];
         setGlobalCount(6);
    end
    
 options = optimset('FunValCheck','on');
 %[x,resnorm] = lsqnonlin(@myfun_yunmin,x0,lb,ub,options)
-[x,resnorm] = fminsearch(@myfun_yunmin,x0, options)
+%[x,resnorm] = fminsearch(@myfun_yunmin_rotation,x0, options)
+[x,resnorm] = fminsearchbnd(@myfun_yunmin_rotation,x0, lb, ub, options)
+   
+x(1)=(x(1)-getGlobalMinX)*cos(x(5))-(x(2)-getGlobalMinY)*sin(x(5)) + getGlobalMinX;
+x(2)=(x(1)-getGlobalMinX)*sin(x(5))+(x(2)-getGlobalMinY)*cos(x(5)) + getGlobalMinY;
+x(3)=(x(3)-getGlobalMinX)*cos(x(5))-(x(4)-getGlobalMinY)*sin(x(5)) + getGlobalMinX;
+x(4)=(x(3)-getGlobalMinX)*sin(x(5))+(x(4)-getGlobalMinY)*cos(x(5)) + getGlobalMinY;
    
 if joint==1
     
@@ -310,10 +395,22 @@ function r = getGlobalLeftFootY
 global LeftFoot
 r = LeftFoot(2);
 
+function setGlobalMinXY(val1, val2)
+global MinXY
+MinXY = [val1, val2];
+
+function r = getGlobalMinX
+global MinXY
+r = MinXY(1);
+
+function r = getGlobalMinY
+global MinXY
+r = MinXY(2);
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % modeling
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function F = myfun_yunmin(x)
+function F = myfun_yunmin_rotation(x)
 rname  = sprintf('tmp_img');
 load (rname, 'im0');
 person_blur=im0;
@@ -333,231 +430,279 @@ sum_score=0;
 sum_count=0;
 half_imy=(imy-1)/2;
 half_imx=(imx-1)/2;
-    
-for a=1:getGlobalCount
 
-    if getGlobalCount==2
-        if round(x(2)) < round(x(4))
-            distanceX=round(x(1))-getGlobalSpinShoulderBaseX;
-            distanceY=round(x(2))-getGlobalSpinShoulderBaseY;
-        else
-            distanceX=round(x(3))-getGlobalSpinShoulderBaseX;
-            distanceY=round(x(4))-getGlobalSpinShoulderBaseY;
+%rotation 파트---------------------
+        if x1 < 1-half_imx
+            x1=1-half_imx;
+        elseif x1 > imx-half_imx
+            x1=imx-half_imx;
         end
-    elseif getGlobalCount==3
-        if round(x(1)) < round(x(3))
-            distanceX=round(x(3))-getGlobalSpinShoulderBaseX;
-            distanceY=round(x(4))-getGlobalSpinShoulderBaseY;
-        else
-            distanceX=round(x(1))-getGlobalSpinShoulderBaseX;
-            distanceY=round(x(2))-getGlobalSpinShoulderBaseY;
+    
+        if y1 < 1-half_imy
+            y1=1-half_imy;
+        elseif y1 > imy-half_imy
+            y1=imy-half_imy;
         end
-         
-    elseif getGlobalCount==4
-        if round(x(1)) < round(x(3))
-            distanceX=round(x(1))-getGlobalSpinShoulderBaseX;
-            distanceY=round(x(2))-getGlobalSpinShoulderBaseY;
-        else
-            distanceX=round(x(3))-getGlobalSpinShoulderBaseX;
-            distanceY=round(x(4))-getGlobalSpinShoulderBaseY;
+    
+        if x2 < 1-half_imx
+            x2=1-half_imx;
+        elseif x2 > imx-half_imx
+            x2=imx-half_imx;
         end
-    elseif getGlobalCount==5
-        if round(x(2)) < round(x(4))
-            distanceX=round(x(1))-getGlobalSpinBaseX;
-            distanceY=round(x(2))-getGlobalSpinBaseY;
-        else
-            distanceX=round(x(3))-getGlobalSpinBaseX;
-            distanceY=round(x(4))-getGlobalSpinBaseY;
+    
+        if y2 < 1-half_imy
+            y2=1-half_imy;
+        elseif y2 > imy-half_imy
+            y2=imy-half_imy;
         end
-    elseif getGlobalCount==6
-        if round(x(2)) < round(x(4))
-            distanceX=round(x(1))-getGlobalSpinBaseX;
-            distanceY=round(x(2))-getGlobalSpinBaseY;
-        else
-            distanceX=round(x(3))-getGlobalSpinBaseX;
-            distanceY=round(x(4))-getGlobalSpinBaseY;
-        end
-    end
-
-    if a==2
-            x1 = round(getGlobalHeadX+distanceX);
-            y1 = round(getGlobalHeadY+distanceY);
-            x2 = round(getGlobalSpinShoulderBaseX+distanceX);
-            y2 = round(getGlobalSpinShoulderBaseY+distanceY);
-    elseif a==3
-            x1 = round(getGlobalSpinShoulderBaseX+distanceX);
-            y1 = round(getGlobalSpinShoulderBaseY+distanceY);
-            x2 = round(getGlobalSpinBaseX+distanceX);
-            y2 = round(getGlobalSpinBaseY+distanceY);
-    elseif a==4
-            x1 = round(getGlobalSpinShoulderBaseX+distanceX);
-            y1 = round(getGlobalSpinShoulderBaseY+distanceY);
-            x2 = round(getGlobalLeftHandX+distanceX);
-            y2 = round(getGlobalLeftHandY+distanceY);
-    elseif a==5
-            x1 = round(getGlobalSpinShoulderBaseX+distanceX);
-            y1 = round(getGlobalSpinShoulderBaseY+distanceY);
-            x2 = round(getGlobalRightHandX+distanceX);
-            y2 = round(getGlobalRightHandY+distanceY);
-    elseif a==6
-            x1 = round(getGlobalSpinBaseX+distanceX);
-            y1 = round(getGlobalSpinBaseY+distanceY);
-            x2 = round(getGlobalLeftFootX+distanceX);
-            y2 = round(getGlobalLeftFootY+distanceY);
-    end
     
-    %rotation 파트---------------------
-    if x1 < 1-half_imx
-        x1=1-half_imx;
-    elseif x1 > imx-half_imx
-        x1=imx-half_imx;
-    end
-    
-    if y1 < 1-half_imy
-        y1=1-half_imy;
-    elseif y1 > imy-half_imy
-        y1=imy-half_imy;
-    end
-    
-    if x2 < 1-half_imx
-        x2=1-half_imx;
-    elseif x2 > imx-half_imx
-        x2=imx-half_imx;
-    end
-    
-    if y2 < 1-half_imy
-        y2=1-half_imy;
-    elseif y2 > imy-half_imy
-        y2=imy-half_imy;
-    end
-    
-    min_pixel=1; %rotation을 위해 추가
-    if x1==x2
-        for i=min(y1,y2):max(y1,y2)
-            if min_pixel >= person_blur(half_imy+i, half_imx+x1)
-                min_pixel = person_blur(half_imy+i, half_imx+x1);
-                min_x=half_imx+x1; min_y=half_imy+i;
+        min_pixel=1; %rotation을 위해 추가
+        if x1==x2
+            for i=min(y1,y2):max(y1,y2)
+                if min_pixel > person_blur(half_imy+i, half_imx+x1)
+                    min_pixel = person_blur(half_imy+i, half_imx+x1);
+                    min_x=half_imx+x1; min_y=half_imy+i;
+                end
             end
-        end
         
-    else
-        gradient=(y2-y1)/(x2-x1);
-        if gradient > 0
-            if y2 > y1
-                    for j=x1:x2
-                        y=gradient*(j-x1)+y1;
-                        
-                        if min_pixel >= person_blur(half_imy+round(y),half_imx+j)
-                            min_pixel = person_blur(half_imy+round(y),half_imx+j);
-                            min_x=half_imy+round(y); min_y=half_imx+j;
-                        end
-                        
-                        if j>x1
-                            if abs(pastY-round(y))>sqrt(2)
-                               for k=pastY:round(y)
-                                   if min_pixel >= person_blur(half_imy+k, half_imx+j)
-                                        min_pixel = person_blur(half_imy+k, half_imx+j);
-                                        min_x=half_imy+k; min_y=half_imx+j;
-                                   end
-                               end
-                            end
-                        end
-                        pastY=round(y);
-                    end
-            else
-                    for j=x2:x1
-                        y=gradient*(j-x1)+y1;
-                        
-                        if min_pixel >= person_blur(half_imy+round(y),half_imx+j)
-                            min_pixel = person_blur(half_imy+round(y),half_imx+j);
-                            min_x=half_imy+round(y); min_y=half_imx+j;
-                        end
-                        
-                        if j>x2
-                            if abs(pastY-round(y))>sqrt(2)
-                               for k=pastY:round(y)
-                                   if min_pixel >= person_blur(half_imy+k,half_imx+j)
-                                        min_pixel = person_blur(half_imy+k,half_imx+j);
-                                        min_x=half_imy+k; min_y=half_imx+j;
-                                   end
-                               end
-                            end
-                        end
-                        pastY=round(y);
-                    end
-            end
         else
-            if y2 > y1
-                    for j=x2:x1
-                        y=gradient*(j-x1)+y1;
-                        
-                        if min_pixel >= person_blur(half_imy+round(y),half_imx+j)
-                            min_pixel = person_blur(half_imy+round(y),half_imx+j);
-                            min_x=half_imy+round(y); min_y=half_imx+j;
-                        end
-                        
-                        if j>x2
-                            if abs(pastY-round(y))>sqrt(2)
-                               for k=round(y):pastY
-                                   if min_pixel >= person_blur(half_imy+k,half_imx+j)
-                                        min_pixel = person_blur(half_imy+k,half_imx+j);
-                                        min_x=half_imy+k; min_y=half_imx+j;
-                                   end
-                               end
-                            end
-                        end
-                        pastY=round(y);
-                    end
-            elseif y1 > y2
+            gradient=(y2-y1)/(x2-x1);
+            if gradient > 0
+                if y2 > y1
                     for j=x1:x2
                         y=gradient*(j-x1)+y1;
                         
-                        if min_pixel >= person_blur(half_imy+round(y),half_imx+j)
+                        if min_pixel > person_blur(half_imy+round(y),half_imx+j)
                             min_pixel = person_blur(half_imy+round(y),half_imx+j);
-                            min_x=half_imy+round(y); min_y=half_imx+j;
+                            min_x=j; min_y=round(y);
                         end
                         
                         if j>x1
                             if abs(pastY-round(y))>sqrt(2)
-                               for k=round(y):pastY
-                                   if min_pixel >= person_blur(half_imy+k,half_imx+j)
-                                        min_pixel = person_blur(half_imy+k,half_imx+j);
-                                        min_x=half_imy+k; min_y=half_imx+j;
+                               for k=pastY:round(y)
+                                   if min_pixel > person_blur(half_imy+k, half_imx+j)
+                                        min_pixel = person_blur(half_imy+k, half_imx+j);
+                                        min_x=j; min_y=k;
                                    end
                                end
                             end
                         end
                         pastY=round(y);
-                    end
-            else
-                if x1 > x2
-                    for j=x2:x1
-                        y=gradient*(j-x1)+y1;
-                        
-                        if min_pixel >= person_blur(half_imy+round(y),half_imx+j)
-                            min_pixel = person_blur(half_imy+round(y),half_imx+j);
-                            min_x=half_imy+round(y); min_y=half_imx+j;
-                        end
                     end
                 else
+                    for j=x2:x1
+                        y=gradient*(j-x1)+y1;
+                        
+                        if min_pixel > person_blur(half_imy+round(y),half_imx+j)
+                            min_pixel = person_blur(half_imy+round(y),half_imx+j);
+                            min_x=j; min_y=round(y);
+                        end
+                        
+                        if j>x2
+                            if abs(pastY-round(y))>sqrt(2)
+                               for k=pastY:round(y)
+                                   if min_pixel > person_blur(half_imy+k,half_imx+j)
+                                        min_pixel = person_blur(half_imy+k,half_imx+j);
+                                        min_x=j; min_y=k;
+                                   end
+                               end
+                            end
+                        end
+                        pastY=round(y);
+                    end
+                end
+            else
+                if y2 > y1
+                    for j=x2:x1
+                        y=gradient*(j-x1)+y1;
+                        
+                        if min_pixel > person_blur(half_imy+round(y),half_imx+j)
+                            min_pixel = person_blur(half_imy+round(y),half_imx+j);
+                            min_x=j; min_y=round(y);
+                        end
+                        
+                        if j>x2
+                            if abs(pastY-round(y))>sqrt(2)
+                               for k=round(y):pastY
+                                   if min_pixel > person_blur(half_imy+k,half_imx+j)
+                                        min_pixel = person_blur(half_imy+k,half_imx+j);
+                                        min_x=j; min_y=k;
+                                   end
+                               end
+                            end
+                        end
+                        pastY=round(y);
+                    end
+                elseif y1 > y2
                     for j=x1:x2
                         y=gradient*(j-x1)+y1;
                         
-                        if min_pixel >= person_blur(half_imy+round(y),half_imx+j)
+                        if min_pixel > person_blur(half_imy+round(y),half_imx+j)
                             min_pixel = person_blur(half_imy+round(y),half_imx+j);
-                            min_x=half_imy+round(y); min_y=half_imx+j;
+                            min_x=j; min_y=round(y);
+                        end
+                        
+                        if j>x1
+                            if abs(pastY-round(y))>sqrt(2)
+                               for k=round(y):pastY
+                                   if min_pixel > person_blur(half_imy+k,half_imx+j)
+                                        min_pixel = person_blur(half_imy+k,half_imx+j);
+                                        min_x=j; min_y=k;
+                                   end
+                               end
+                            end
+                        end
+                        pastY=round(y);
+                    end
+                else
+                    if x1 > x2
+                        for j=x2:x1
+                            y=gradient*(j-x1)+y1;
+                        
+                            if min_pixel > person_blur(half_imy+round(y),half_imx+j)
+                                min_pixel = person_blur(half_imy+round(y),half_imx+j);
+                                min_x=j; min_y=round(y);
+                            end
+                        end
+                    else
+                        for j=x1:x2
+                            y=gradient*(j-x1)+y1;
+                        
+                            if min_pixel > person_blur(half_imy+round(y),half_imx+j)
+                                min_pixel = person_blur(half_imy+round(y),half_imx+j);
+                                min_x=j; min_y=round(y);
+                            end
                         end
                     end
                 end
             end
         end
-    end
+        
+        x1_temp=round((x1-min_x)*cos(rotation)-(y1-min_y)*sin(rotation) + min_x);
+        y1_temp=round((x1-min_x)*sin(rotation)+(y1-min_y)*cos(rotation) + min_y);
+        x2_temp=round((x2-min_x)*cos(rotation)-(y2-min_y)*sin(rotation) + min_x);
+        y2_temp=round((x2-min_x)*sin(rotation)+(y2-min_y)*cos(rotation) + min_y);
+        
+        x1=x1_temp;	y1=y1_temp;
+        x2=x2_temp;	y2=y2_temp;
+        
+        first_x1 = x1;  first_y1 = y1;
+        first_x2 = x2;  first_y2 = y2;
+        
+        setGlobalMinXY(min_x, min_y);
+%------------------------------------------------------------------
     
-    x1=round((x1-min_x)*cos(rotation)-(y1-min_y)*sin(rotation) + min_x);
-    y1=round((x1-min_x)*sin(rotation)+(y1-min_y)*cos(rotation) + min_y);
-    x2=round((x2-min_x)*cos(rotation)-(y2-min_y)*sin(rotation) + min_x);
-    y2=round((x2-min_x)*sin(rotation)+(y2-min_y)*cos(rotation) + min_y);
-    %------------------------------------------------------------------
+if getGlobalCount==2
+        HeadX=round(x(6)); HeadY=round(x(7));
+        if round(x(2)) < round(x(4))
+            distanceX=first_x1-getGlobalSpinShoulderBaseX;
+            distanceY=first_y1-getGlobalSpinShoulderBaseY;
+        else
+            distanceX=first_x2-getGlobalSpinShoulderBaseX;
+            distanceY=first_y2-getGlobalSpinShoulderBaseY;
+        end
+elseif getGlobalCount==3
+        HeadX=round(x(6)); HeadY=round(x(7));
+        SpinBaseX=round(x(8)); SpinBaseY=round(x(9));
+        if round(x(1)) < round(x(3))
+            distanceX=first_x2-getGlobalSpinShoulderBaseX;
+            distanceY=first_y2-getGlobalSpinShoulderBaseY;
+        else
+            distanceX=first_x1-getGlobalSpinShoulderBaseX;
+            distanceY=first_y1-getGlobalSpinShoulderBaseY;
+        end
+         
+elseif getGlobalCount==4
+        HeadX=round(x(6)); HeadY=round(x(7));
+        SpinBaseX=round(x(8)); SpinBaseY=round(x(9));
+        LeftHandX=round(x(10)); LeftHandY=round(x(11));
+        if round(x(1)) < round(x(3))
+            distanceX=first_x1-getGlobalSpinShoulderBaseX;
+            distanceY=first_y1-getGlobalSpinShoulderBaseY;
+        else
+            distanceX=first_x2-getGlobalSpinShoulderBaseX;
+            distanceY=first_y2-getGlobalSpinShoulderBaseY;
+        end
+elseif getGlobalCount==5
+        HeadX=round(x(6)); HeadY=round(x(7));
+        SpinShoulderBaseX=round(x(8)); SpinShoulderBaseY=round(x(9));
+        LeftHandX=round(x(10)); LeftHandY=round(x(11));
+        RightHandX=round(x(12)); RightHandY=round(x(13));
+        if round(x(2)) < round(x(4))
+            distanceX=first_x1-getGlobalSpinBaseX;
+            distanceY=first_y1-getGlobalSpinBaseY;
+        else
+            distanceX=first_x2-getGlobalSpinBaseX;
+            distanceY=first_y2-getGlobalSpinBaseY;
+        end
+elseif getGlobalCount==6
+        HeadX=round(x(6)); HeadY=round(x(7));
+        SpinShoulderBaseX=round(x(8)); SpinShoulderBaseY=round(x(9));
+        LeftHandX=round(x(10)); LeftHandY=round(x(11));
+        RightHandX=round(x(12)); RightHandY=round(x(13));
+        LeftFootX=round(x(14)); LeftFootY=round(x(15));
+        if round(x(2)) < round(x(4))
+            distanceX=first_x1-getGlobalSpinBaseX;
+            distanceY=first_y1-getGlobalSpinBaseY;
+        else
+            distanceX=first_x2-getGlobalSpinBaseX;
+            distanceY=first_y2-getGlobalSpinBaseY;
+        end
+end
+
+
+for a=1:getGlobalCount
+
+    if a==2
+            if getGlobalCount<5
+                x1 = round(HeadX+distanceX);
+                y1 = round(HeadY+distanceY);
+                x2 = round(getGlobalSpinShoulderBaseX+distanceX);
+                y2 = round(getGlobalSpinShoulderBaseY+distanceY);
+            else
+                x1 = round(HeadX+distanceX);
+                y1 = round(HeadY+distanceY);
+                x2 = round(SpinShoulderBaseX+distanceX);
+                y2 = round(SpinShoulderBaseY+distanceY);
+            end
+    elseif a==3
+            
+            if getGlobalCount<5
+                x1 = round(getGlobalSpinShoulderBaseX);
+                y1 = round(getGlobalSpinShoulderBaseY);
+                x2 = round(SpinBaseX+distanceX);
+                y2 = round(SpinBaseY+distanceY);
+            else
+                x1 = round(SpinShoulderBaseX);
+                y1 = round(SpinShoulderBaseY);
+                x2 = round(getGlobalSpinBaseX+distanceX);
+                y2 = round(getGlobalSpinBaseY+distanceY);
+            end
+    elseif a==4
+            
+            if getGlobalCount<5
+                x1 = round(getGlobalSpinShoulderBaseX);
+                y1 = round(getGlobalSpinShoulderBaseY);
+                x2 = round(LeftHandX+distanceX);
+                y2 = round(LeftHandY+distanceY);
+            else
+                x1 = round(SpinShoulderBaseX);
+                y1 = round(SpinShoulderBaseY);
+                x2 = round(LeftHandX+distanceX);
+                y2 = round(LeftHandY+distanceY);
+            end
+            
+    elseif a==5
+            x1 = round(SpinShoulderBaseX);
+            y1 = round(SpinShoulderBaseY);
+            x2 = round(RightHandX+distanceX);
+            y2 = round(RightHandY+distanceY);
+    elseif a==6
+            x1 = round(getGlobalSpinBaseX);
+            y1 = round(getGlobalSpinBaseY);
+            x2 = round(LeftFootX+distanceX);
+            y2 = round(LeftFootY+distanceY);
+    end
     
     %실제 라인 최소값 계산 파트------------------------------------------
     if x1 < 1-half_imx

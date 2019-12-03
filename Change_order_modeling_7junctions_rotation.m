@@ -3,14 +3,14 @@
 
 %테스트 - 관절 줄이기: 팔꿈치, 무릎 없애고 찾기
 %테스트 - rotation 추가
-%%테스트 - skeleton end point 높이기
+%%테스트 - 관절 탐색 순서 변경: 머리 -> 왼쪽 손 -> 오른쪽 손-> 몸통 -> 왼쪽 발-> 오른쪽 발
 
 function o = otest
 
 clear all;
 dct_driven=1;
 
-skeletonim = imread('person_data/person_skeleton7.jpg'); 
+skeletonim = imread('person_data/person_skeleton8.jpg'); 
 %skeletonim = imread('md2.jpg');
 %skeletonimage=double(rgb2gray(skeletonim));
 skeletonimage=double(skeletonim);
@@ -21,7 +21,7 @@ skeletonimage=skeletonimage./255;
 opt=zeros(imy,imx);
 
 % person 불러오기
-person = imread('person_data/person_black7.bmp');
+person = imread('person_data/person_black8.bmp');
 personimage = double(person);
 personimage = personimage ./ 255;
 person_blur = imgaussfilt(personimage, 8);
@@ -179,29 +179,31 @@ save(wpath,'im0');
 for joint=1:6
    if joint==1 %머리-어깨중심
        %x0 = [0, -30, 0, -10, 0, 10, -15, -10, 15, -10, -30, -10, 30, -10, -5, 15, 5, 15, -15, 25, 15, 25];
-       x0=[5, -35, -5, -25, 0];
+       x0=[10, -35, -10, -25, 0];
        %x0 = [10, 10, 12, 20, 0];
-       lb=[-10, -44 -20, -44, pi*(-1)];
-       ub=[20, -20, 10, -10, pi];
+       lb=[-5, -44 -25, -44, pi*(-1)];
+       ub=[25, -20, 5, -10, pi];
        setGlobalCount(1);
-    elseif joint==2 %어깨중심-가랑이
-        %x0=[getGlobalSpinShoulderBaseX, getGlobalSpinShoulderBaseY, -10, 5];
-        x0=[-5, -15, 5, 10, 0];
-        %x0=[-20, -10, -15, 10, 0];
-        lb=[-25, -35, -15, -5, pi*(-1)/2];
-        ub=[15, 5, 25, 35, pi/2];
-        setGlobalCount(2);
-    elseif joint==3 %어깨중심-왼쪽손
+    elseif joint==2 %어깨중심-왼쪽손
         x0 = [getGlobalSpinShoulderBaseX, getGlobalSpinShoulderBaseY, getGlobalSpinShoulderBaseX-30, getGlobalSpinShoulderBaseY+1, 0];
         %x0 = [-10, -15, -20, -13, 0];
         lb=[getGlobalSpinShoulderBaseX-20, getGlobalSpinShoulderBaseY-20, -44, getGlobalSpinShoulderBaseY-19, pi*(-1)/2];
         ub=[getGlobalSpinShoulderBaseX+20, getGlobalSpinShoulderBaseY+20, getGlobalSpinShoulderBaseX-10, getGlobalSpinShoulderBaseY+21, pi/2];
-        setGlobalCount(3);
-    elseif joint==4 %어깨중심-오른쪽손
+        setGlobalCount(2);
+    elseif joint==3 %어깨중심-오른쪽손
         x0 = [getGlobalSpinShoulderBaseX, getGlobalSpinShoulderBaseY, getGlobalSpinShoulderBaseX+30, getGlobalSpinShoulderBaseY+1, 0];
         %x0 = [0, -15, 20, -13, 0];
-        lb=[getGlobalSpinShoulderBaseX-20, getGlobalSpinShoulderBaseY-20, getGlobalSpinShoulderBaseX+10, getGlobalSpinShoulderBaseY-19, pi*(-1)/3];
-        ub=[getGlobalSpinShoulderBaseX+20, getGlobalSpinShoulderBaseY+20, 45, getGlobalSpinShoulderBaseY+21, pi/3];
+        lb=[getGlobalSpinShoulderBaseX-20, getGlobalSpinShoulderBaseY-20, getGlobalSpinShoulderBaseX+10, getGlobalSpinShoulderBaseY-19, pi*(-1)/2];
+        ub=[getGlobalSpinShoulderBaseX+20, getGlobalSpinShoulderBaseY+20, 45, getGlobalSpinShoulderBaseY+21, pi/2];
+        setGlobalCount(3);
+    elseif joint==4 %어깨중심-가랑이
+        x0=[getGlobalSpinShoulderBaseX-5, getGlobalSpinShoulderBaseY, getGlobalSpinShoulderBaseX+5, getGlobalSpinShoulderBaseY+20, 0];
+        %x0=[-5, -10, 5, 10, 0];
+        %x0=[-20, -10, -15, 10, 0];
+%         lb=[-25, -30, -10, -10, pi*(-1)];
+%         ub=[15, 10, 30, 30, pi];
+        lb=[getGlobalSpinShoulderBaseX-25, getGlobalSpinShoulderBaseY-20, getGlobalSpinShoulderBaseX-15, getGlobalSpinShoulderBaseY+5, pi*(-1)];
+        ub=[getGlobalSpinShoulderBaseX+15, getGlobalSpinShoulderBaseY+20, getGlobalSpinShoulderBaseX+25, getGlobalSpinShoulderBaseY+40, pi];
         setGlobalCount(4);
     elseif joint==5 %가랑이-왼쪽발
         x0 = [getGlobalSpinBaseX, getGlobalSpinBaseY, getGlobalSpinBaseX-15, getGlobalSpinBaseY+25, 0];
@@ -212,8 +214,8 @@ for joint=1:6
     elseif joint==6 %가랑이-오른쪽발
         x0 = [getGlobalSpinBaseX, getGlobalSpinBaseY, getGlobalSpinBaseX+15, getGlobalSpinBaseY+25, 0];
         %x0 = [10, 10, 12, 20];
-        lb=[getGlobalSpinBaseX-20, getGlobalSpinBaseY-20, getGlobalSpinBaseX+5, getGlobalSpinBaseY+5, pi*(-1)/3];
-        ub=[getGlobalSpinBaseX+20, getGlobalSpinBaseY+20, 45, 45, pi/3];
+        lb=[getGlobalSpinBaseX-20, getGlobalSpinBaseY-20, getGlobalSpinBaseX+5, getGlobalSpinBaseY+5, pi*(-1)/2];
+        ub=[getGlobalSpinBaseX+20, getGlobalSpinBaseY+20, 45, 45, pi/2];
         setGlobalCount(6);
    end
    
@@ -239,26 +241,26 @@ if joint==1
     
 elseif joint==2
     
-    if x(2) < x(4)
-        setGlobalSpinBase(round(x(3)), round(x(4)));
-    else
-        setGlobalSpinBase(round(x(1)), round(x(2)));
-    end
-    
-elseif joint==3
-    
     if x(1) < x(3)
         setGlobalLeftHand(round(x(1)), round(x(2)));
     else
         setGlobalLeftHand(round(x(3)), round(x(4)));
     end
     
-elseif joint==4
+elseif joint==3
     
     if x(1) < x(3)
         setGlobalRightHand(round(x(3)), round(x(4)));
     else
         setGlobalRightHand(round(x(1)), round(x(2)));
+    end
+    
+elseif joint==4
+    
+    if x(2) < x(4)
+        setGlobalSpinBase(round(x(3)), round(x(4)));
+    else
+        setGlobalSpinBase(round(x(1)), round(x(2)));
     end
         
 elseif joint==5
@@ -595,6 +597,23 @@ half_imx=(imx-1)/2;
 %------------------------------------------------------------------
     
 if getGlobalCount==2
+        if round(x(1)) < round(x(3))
+            distanceX=first_x2-getGlobalSpinShoulderBaseX;
+            distanceY=first_y2-getGlobalSpinShoulderBaseY;
+        else
+            distanceX=first_x1-getGlobalSpinShoulderBaseX;
+            distanceY=first_y1-getGlobalSpinShoulderBaseY;
+        end
+elseif getGlobalCount==3
+        if round(x(1)) < round(x(3))
+            distanceX=first_x1-getGlobalSpinShoulderBaseX;
+            distanceY=first_y1-getGlobalSpinShoulderBaseY;
+        else
+            distanceX=first_x2-getGlobalSpinShoulderBaseX;
+            distanceY=first_y2-getGlobalSpinShoulderBaseY;
+        end
+         
+elseif getGlobalCount==4
         if round(x(2)) < round(x(4))
             distanceX=first_x1-getGlobalSpinShoulderBaseX;
             distanceY=first_y1-getGlobalSpinShoulderBaseY;
@@ -602,24 +621,7 @@ if getGlobalCount==2
             distanceX=first_x2-getGlobalSpinShoulderBaseX;
             distanceY=first_y2-getGlobalSpinShoulderBaseY;
         end
-elseif getGlobalCount==3
-        if round(x(1)) < round(x(3))
-            distanceX=first_x2-getGlobalSpinShoulderBaseX;
-            distanceY=first_y2-getGlobalSpinShoulderBaseY;
-        else
-            distanceX=first_x1-getGlobalSpinShoulderBaseX;
-            distanceY=first_y1-getGlobalSpinShoulderBaseY;
-        end
-         
-elseif getGlobalCount==4
-        if round(x(1)) < round(x(3))
-            distanceX=first_x1-getGlobalSpinShoulderBaseX;
-            distanceY=first_y1-getGlobalSpinShoulderBaseY;
-        else
-            distanceX=first_x2-getGlobalSpinShoulderBaseX;
-            distanceY=first_y2-getGlobalSpinShoulderBaseY;
-        end
-    elseif getGlobalCount==5
+elseif getGlobalCount==5
         if round(x(2)) < round(x(4))
             distanceX=first_x1-getGlobalSpinBaseX;
             distanceY=first_y1-getGlobalSpinBaseY;
@@ -646,23 +648,23 @@ for a=1:getGlobalCount
             x2 = round(getGlobalSpinShoulderBaseX+distanceX);
             y2 = round(getGlobalSpinShoulderBaseY+distanceY);
     elseif a==3
-            x1 = round(getGlobalSpinShoulderBaseX);
-            y1 = round(getGlobalSpinShoulderBaseY);
-            x2 = round(getGlobalSpinBaseX+distanceX);
-            y2 = round(getGlobalSpinBaseY+distanceY);
-    elseif a==4
-            x1 = round(getGlobalSpinShoulderBaseX);
-            y1 = round(getGlobalSpinShoulderBaseY);
+            x1 = round(getGlobalSpinShoulderBaseX+distanceX);
+            y1 = round(getGlobalSpinShoulderBaseY+distanceY);
             x2 = round(getGlobalLeftHandX+distanceX);
             y2 = round(getGlobalLeftHandY+distanceY);
-    elseif a==5
-            x1 = round(getGlobalSpinShoulderBaseX);
-            y1 = round(getGlobalSpinShoulderBaseY);
+    elseif a==4
+            x1 = round(getGlobalSpinShoulderBaseX+distanceX);
+            y1 = round(getGlobalSpinShoulderBaseY+distanceY);
             x2 = round(getGlobalRightHandX+distanceX);
             y2 = round(getGlobalRightHandY+distanceY);
+    elseif a==5
+            x1 = round(getGlobalSpinShoulderBaseX+distanceX);
+            y1 = round(getGlobalSpinShoulderBaseY+distanceY);
+            x2 = round(getGlobalSpinBaseX+distanceX);
+            y2 = round(getGlobalSpinBaseY+distanceY);
     elseif a==6
-            x1 = round(getGlobalSpinBaseX);
-            y1 = round(getGlobalSpinBaseY);
+            x1 = round(getGlobalSpinBaseX+distanceX);
+            y1 = round(getGlobalSpinBaseY+distanceY);
             x2 = round(getGlobalLeftFootX+distanceX);
             y2 = round(getGlobalLeftFootY+distanceY);
     end
@@ -800,11 +802,11 @@ for a=1:getGlobalCount
         setGlobalHead(x1, y1);
         setGlobalSpinShoulderBase(x2, y2);
     elseif a==3
-        setGlobalSpinBase(x2, y2);
-    elseif a==4
         setGlobalLeftHand(x2, y2);
-    elseif a==5
+    elseif a==4
         setGlobalRightHand(x2, y2);
+    elseif a==5
+        setGlobalSpinBase(x2, y2);
     elseif a==6
         setGlobalLeftFoot(x2, y2);
     end
